@@ -1,0 +1,15 @@
+package junguitar.framework.dbtable.model;
+
+import lombok.Data;
+
+@Data
+public class Column {
+	private String tableName;
+	private String name;
+	private String dataType;
+	private boolean primaryKey;
+	private int length;
+	private int scale;
+	private String refTableName;
+	private String refColumnName;
+}
