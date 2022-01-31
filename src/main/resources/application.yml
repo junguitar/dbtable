@@ -1,0 +1,21 @@
+server:
+  port: 9000
+
+spring:
+  devtools:
+    livereload.enabled: true
+    restart.enabled: false
+
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost/dbSchema?autoReconnect=true&useUnicode=true&characterEncoding=utf8
+    username: username
+    password: password
+    driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 60000
+      max-lifetime: 180000
+      minimum-idle: 1
+      maximum-pool-size: 30
+      connection-test-query: select 1
