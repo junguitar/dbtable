@@ -37,7 +37,7 @@ public class DbtableController {
 		List<Table> tables = getTables(schemaName);
 
 		StringBuilder buf = new StringBuilder(
-				"\r\nno\ttable\tcolumn\tdata type\tpk\tsize\tscale\trel table\trel column");
+				"\r\nno\ttable\tcolumn\tdata type\tcol type\tsize\tscale\trel table\trel column");
 
 		int[] i = { 0 };
 		int[] j = { 0 };
@@ -45,18 +45,23 @@ public class DbtableController {
 		tables.forEach(table -> {
 			j[0] = 0;
 
-			buf.append("\r\n").append(++i[0]).append("\t").append(table.getName());
+			buf.append("\r\n").append(++i[0]).append("\t").append(table.getName()).append("\t\t\tT");
 
 			table.getColumns().forEach((col) -> {
-				buf.append("\r\n").append(i[0]).append(".").append(++j[0]).append("\t\t").append(col.getName());
+				buf.append("\r\n'").append(i[0]).append(".").append(++j[0]).append("\t\t").append(col.getName());
 				buf.append("\t").append(col.getDataType());
-				buf.append("\t").append(col.isPrimaryKey() ? "Y" : " ");
+				buf.append("\t");
+				if (col.isPrimaryKey()) {
+					buf.append("PK");
+				} else if (col.getRefTableName() != null) {
+					buf.append("R");
+				}
 				buf.append("\t").append(col.getLength());
 				buf.append("\t").append(col.getScale());
 				if (col.getRefTableName() != null) {
 					buf.append("\t").append(col.getRefTableName());
 					if (col.getRefColumnName() != null) {
-						buf.append("\t").append(col.getRefTableName());
+						buf.append("\t").append(col.getRefColumnName());
 					}
 				}
 			});
