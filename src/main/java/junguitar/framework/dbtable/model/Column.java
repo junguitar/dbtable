@@ -12,4 +12,5 @@ public class Column {
 	private int scale;
 	private String refTableName;
 	private String refColumnName;
+	private String comment;
 }

@@ -36,36 +36,41 @@ public class DbtableController {
 	public String info(@RequestParam(required = true) String schemaName) {
 		List<Table> tables = getTables(schemaName);
 
-		StringBuilder buf = new StringBuilder(
-				"\r\nno\ttable\tcolumn\tdata type\tcol type\tsize\tscale\trel table\trel column");
+		StringBuilder buf = new StringBuilder();
 
+		// Head
+		append(buf, "No", "Table", "Column", "Character", "Data Type", "Length", "Scale", "Rel. Table", "Rel. Column",
+				"Comment");
+
+		// Rows
 		int[] i = { 0 };
 		int[] j = { 0 };
-
 		tables.forEach(table -> {
 			j[0] = 0;
-
-			buf.append("\r\n").append(++i[0]).append("\t").append(table.getName()).append("\t\t\tT");
-
-			table.getColumns().forEach((col) -> {
-				buf.append("\r\n'").append(i[0]).append(".").append(++j[0]).append("\t\t").append(col.getName());
-				buf.append("\t").append(col.getDataType());
-				buf.append("\t");
-				if (col.isPrimaryKey()) {
-					buf.append("PK");
-				} else if (col.getRefTableName() != null) {
-					buf.append("R");
-				}
-				buf.append("\t").append(col.getLength());
-				buf.append("\t").append(col.getScale());
-				if (col.getRefTableName() != null) {
-					buf.append("\t").append(col.getRefTableName());
-					if (col.getRefColumnName() != null) {
-						buf.append("\t").append(col.getRefColumnName());
-					}
-				}
-			});
-
+			// Table
+			append(buf, ++i[0], table.getName(), null, null, null, null, null, null, null, table.getComment());
+			// Columns
+			table.getColumns().forEach(col -> append(buf,
+					// No
+					(i[0] + "." + ++j[0]),
+					// Table
+					null,
+					// Column
+					col.getName(),
+					// Charater
+					(col.isPrimaryKey() ? "PK" : (col.getRefTableName() != null ? "R" : null)),
+					// Data Type
+					col.getDataType(),
+					// Length
+					col.getLength(),
+					// Scale
+					col.getScale(),
+					// Rel. Table
+					col.getRefTableName(),
+					// Rel. Column
+					col.getRefColumnName(),
+					// Comment
+					col.getComment()));
 		});
 
 		String str = buf.toString();
@@ -79,18 +84,21 @@ public class DbtableController {
 	public String infoColumnsDictionaries(@RequestParam(required = true) String schemaName) {
 		Map<String, List<Column>> map = getColumnsDictionaries(schemaName);
 
-		StringBuilder buf = new StringBuilder("\r\nno\tcolumn\tdata type\tsize\tscale\ttable");
+		StringBuilder buf = new StringBuilder();
 
+		// Head
+		append(buf, "No", "Column", "Data Type", "Length", "Scale", "Comment", "Tables");
+
+		// Rows
 		int i = 0;
-
 		for (String key : map.keySet()) {
 			List<Column> list = map.get(key);
 			if (list.isEmpty()) {
 				continue;
 			}
+
 			Column col = list.get(0);
-			buf.append("\r\n").append(++i).append("\t").append(col.getName()).append("\t").append(col.getDataType())
-					.append("\t").append(col.getLength()).append("\t").append(col.getScale());
+			append(buf, ++i, col.getName(), col.getDataType(), col.getLength(), col.getScale(), col.getComment());
 			int j = 0;
 			for (Column item : list) {
 				buf.append(j++ == 0 ? "\t" : ", ").append(StringUtils.capitalize(item.getTableName()));
@@ -134,12 +142,13 @@ public class DbtableController {
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaName", schemaName);
 			stream = npjo.queryForStream(
-					"SELECT LOWER(table_name) as table_name FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
+					"SELECT LOWER(table_name) as name, table_comment as comment FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
 					params, new RowMapper<Table>() {
 						@Override
 						public Table mapRow(ResultSet rs, int rowNum) throws SQLException {
 							Table table = new Table();
-							table.setName(rs.getString("table_name"));
+							table.setName(rs.getString("name"));
+							table.setComment(rs.getString("comment"));
 							return table;
 						}
 					});
@@ -219,5 +228,15 @@ public class DbtableController {
 		});
 
 		return list;
+	}
+
+	private static void append(StringBuilder buf, Object... values) {
+		int i = 0;
+		for (Object value : values) {
+			buf.append(i++ == 0 ? "\r\n" : "\t");
+			if (value != null) {
+				buf.append(value);
+			}
+		}
 	}
 }
