@@ -48,11 +48,11 @@ public class DbtableController {
 		tables.forEach(table -> {
 			j[0] = 0;
 			// Table
-			append(buf, ++i[0], table.getName(), null, null, null, null, null, null, null, table.getComment());
+			append(buf, ++i[0], table.getName(), null, "T", null, null, null, null, null, table.getComment());
 			// Columns
 			table.getColumns().forEach(col -> append(buf,
 					// No
-					(i[0] + "." + ++j[0]),
+					("'" + i[0] + "." + ++j[0]),
 					// Table
 					null,
 					// Column
