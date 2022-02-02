@@ -1,4 +1,4 @@
-package junguitar.framework.dbtable.model;
+package junguitar.framework.resource.dbtable.model;
 
 import lombok.Data;
 

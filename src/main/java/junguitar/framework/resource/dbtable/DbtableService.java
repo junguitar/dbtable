@@ -1,4 +1,4 @@
-package junguitar.framework.dbtable;
+package junguitar.framework.resource.dbtable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,8 +14,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import junguitar.framework.dbtable.model.Column;
-import junguitar.framework.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.model.Column;
+import junguitar.framework.resource.dbtable.model.Table;
 
 @Service
 @Transactional

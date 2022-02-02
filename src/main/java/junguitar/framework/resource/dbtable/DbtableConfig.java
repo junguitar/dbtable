@@ -1,4 +1,4 @@
-package junguitar.framework.dbtable;
+package junguitar.framework.resource.dbtable;
 
 import javax.sql.DataSource;
 

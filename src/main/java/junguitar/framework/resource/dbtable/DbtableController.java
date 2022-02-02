@@ -1,4 +1,4 @@
-package junguitar.framework.dbtable;
+package junguitar.framework.resource.dbtable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import junguitar.framework.dbtable.model.Column;
-import junguitar.framework.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.model.Column;
+import junguitar.framework.resource.dbtable.model.Table;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController

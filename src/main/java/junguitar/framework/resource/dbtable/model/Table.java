@@ -1,4 +1,4 @@
-package junguitar.framework.dbtable.model;
+package junguitar.framework.resource.dbtable.model;
 
 import java.util.ArrayList;
 import java.util.List;
