@@ -107,6 +107,7 @@ public class TableService {
 								Column col = cols.get(rs.getString("column_name"));
 								col.setRefTableName(rs.getString("ref_table_name"));
 								col.setRefColumnName(rs.getString("ref_column_name"));
+								col.setRef(col.getRefTableName() != null);
 								return col;
 							}
 						});

@@ -10,6 +10,7 @@ public class Column {
 	private boolean primaryKey;
 	private int length;
 	private int scale;
+	private boolean ref;
 	private String refTableName;
 	private String refColumnName;
 	private String comment;

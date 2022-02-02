@@ -1,4 +1,4 @@
-package junguitar.framework.resource.dbtable.controller;
+package junguitar.framework.resource.dbtable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,19 +20,22 @@ public class DbtableController {
 
 	@GetMapping("info")
 	public String info(@RequestParam(required = true) String schemaName,
-			@RequestParam(required = false) String sequence) {
-		return service.info(schemaName, sequence);
+			@RequestParam(required = false) String sequence, @RequestParam(required = false) String sheetPath,
+			@RequestParam(required = false) String sheetName,
+			@RequestParam(required = false) String dictionaySheetName) {
+		return service.info(schemaName, sequence, sheetPath, sheetName, dictionaySheetName);
 	}
 
 	@GetMapping("columns/dictionaries/info")
-	public String infoColumnsDictionaries(@RequestParam(required = true) String schemaName) {
-		return service.infoColumnsDictionaries(schemaName);
+	public String infoColumnsDictionaries(@RequestParam(required = true) String schemaName,
+			@RequestParam(required = false) String sheetPath, @RequestParam(required = false) String sheetName) {
+		return service.infoColumnsDictionaries(schemaName, sheetPath, sheetName);
 	}
 
 	@GetMapping("comments/info-by-excel")
-	public String infoCommentListByExcel(@RequestParam(required = true) String path,
+	public String infoCommentListByExcel(@RequestParam(required = true) String sheetPath,
 			@RequestParam(required = true) String sheetName) {
-		return commentService.infoCommentListByExcel(path, sheetName);
+		return commentService.infoCommentListByExcel(sheetPath, sheetName);
 	}
 
 //	@PutMapping("comments/by-excel")

@@ -1,20 +1,23 @@
 package junguitar.framework.resource.dbtable.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import junguitar.framework.resource.dbtable.model.Column;
 import junguitar.framework.resource.dbtable.model.Table;
 import junguitar.framework.resource.dbtable.service.table.TableService;
 import junguitar.framework.resource.dbtable.util.DbtableUtils;
+import junguitar.framework.resource.dbtable.util.DbtableUtils.RowData;
+import junguitar.framework.resource.dbtable.util.DbtableUtils.SheetData;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -23,10 +26,88 @@ public class DbtableService {
 	@Autowired
 	private TableService tableService;
 
-	@GetMapping("info")
-	public String info(@RequestParam(required = true) String schemaName,
-			@RequestParam(required = false) String sequence) {
+	public String info(String schemaName, String sequence, String sheetPath, String sheetName,
+			String dictionaySheetName) {
 		Map<String, Table> tables = tableService.getTables(schemaName);
+
+		if (!ObjectUtils.isEmpty(sheetPath)) {
+			if (!ObjectUtils.isEmpty(sheetName)) {
+				SheetData sheetData = DbtableUtils.getSheetData(sheetPath, sheetName);
+				Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
+
+				for (RowData data : sheetData.getRows()) {
+					String table = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Table");
+					String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
+					String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Character");
+					String relTable = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Rel. Table");
+					String relColumn = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Rel. Column");
+					String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
+
+					boolean tableFlag = "T".equals(div);
+					boolean viewFlag = "V".equals(div);
+
+					if (ObjectUtils.isEmpty(table) || (!tableFlag && !viewFlag && ObjectUtils.isEmpty(column))
+							|| !tables.containsKey(table)) {
+						continue;
+					}
+
+					if (tableFlag || viewFlag) {
+						if (!ObjectUtils.isEmpty(comment)) {
+							tables.get(table).setComment(comment);
+						}
+						continue;
+					}
+
+					for (Column col : tables.get(table).getColumns()) {
+						if (column.equals(col.getName())) {
+							if (ObjectUtils.isEmpty(col.getRefTableName()) && !ObjectUtils.isEmpty(relTable)) {
+								col.setRefTableName(relTable);
+							}
+							if (ObjectUtils.isEmpty(col.getRefColumnName()) && !ObjectUtils.isEmpty(relColumn)) {
+								col.setRefColumnName(relColumn);
+							}
+							if (!ObjectUtils.isEmpty(comment)) {
+								col.setComment(comment);
+							}
+						}
+					}
+				}
+			}
+
+			if (!ObjectUtils.isEmpty(dictionaySheetName)) {
+				SheetData sheetData = DbtableUtils.getSheetData(sheetPath, dictionaySheetName);
+				Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
+
+				Map<String, String> comments = new HashMap<>();
+				for (RowData data : sheetData.getRows()) {
+					String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
+					String dataType = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Data Type");
+					int length = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Length")).intValue();
+					int scale = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Scale")).intValue();
+					String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
+
+					if (ObjectUtils.isEmpty(column) || ObjectUtils.isEmpty(dataType) || ObjectUtils.isEmpty(scale)
+							|| ObjectUtils.isEmpty(scale) || ObjectUtils.isEmpty(comment)) {
+						continue;
+					}
+
+					String key = column + "," + dataType + "," + length + "," + scale;
+					comments.put(key, comment);
+				}
+
+				if (!comments.isEmpty()) {
+					for (Table table : tables.values()) {
+						for (Column col : table.getColumns()) {
+							String key = col.getName() + "," + col.getDataType() + "," + col.getLength() + ","
+									+ col.getScale();
+							if (comments.containsKey(key)) {
+								col.setComment(comments.get(key));
+							}
+						}
+					}
+				}
+			}
+		}
 
 		StringBuilder buf = new StringBuilder();
 
@@ -80,7 +161,7 @@ public class DbtableService {
 				// Column
 				col.getName(),
 				// Character
-				(col.isPrimaryKey() ? "PK" : (col.getRefTableName() != null ? "R" : null)),
+				(col.isPrimaryKey() ? "PK" : (col.isRef() ? "R" : (col.getRefTableName() != null ? "RC" : null))),
 				// Data Type
 				col.getDataType(),
 				// Length
@@ -97,9 +178,33 @@ public class DbtableService {
 				col.getComment()));
 	}
 
-	@GetMapping("/columns/dictionaries/info")
-	public String infoColumnsDictionaries(@RequestParam(required = true) String schemaName) {
-		Map<String, List<Column>> map = getColumnsDictionaries(schemaName);
+	public String infoColumnsDictionaries(String schemaName, String sheetPath, String sheetName) {
+		Map<String, List<Column>> cols = getColumnsDictionaries(schemaName);
+
+		if (!ObjectUtils.isEmpty(sheetPath)) {
+			SheetData sheetData = DbtableUtils.getSheetData(sheetPath, sheetName);
+			Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
+
+			for (RowData data : sheetData.getRows()) {
+				String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
+				String dataType = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Data Type");
+				int length = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Length")).intValue();
+				int scale = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Scale")).intValue();
+				String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
+
+				if (ObjectUtils.isEmpty(column) || ObjectUtils.isEmpty(dataType) || ObjectUtils.isEmpty(scale)
+						|| ObjectUtils.isEmpty(scale) || ObjectUtils.isEmpty(comment)) {
+					continue;
+				}
+
+				String key = column + "," + dataType + "," + length + "," + scale;
+				if (!cols.containsKey(key)) {
+					continue;
+				}
+
+				cols.get(key).get(0).setComment(comment);
+			}
+		}
 
 		StringBuilder buf = new StringBuilder();
 
@@ -108,14 +213,15 @@ public class DbtableService {
 
 		// Rows
 		int i = 0;
-		for (String key : map.keySet()) {
-			List<Column> list = map.get(key);
+		for (String key : cols.keySet()) {
+			List<Column> list = cols.get(key);
 			if (list.isEmpty()) {
 				continue;
 			}
 
 			Column col = list.get(0);
-			DbtableUtils.appendRow(buf, ++i, col.getName(), col.getDataType(), col.getLength(), col.getScale(), col.getComment());
+			DbtableUtils.appendRow(buf, ++i, col.getName(), col.getDataType(), col.getLength(), col.getScale(),
+					col.getComment());
 			int j = 0;
 			for (Column item : list) {
 				buf.append(j++ == 0 ? "\t" : ", ").append(StringUtils.capitalize(item.getTableName()));
