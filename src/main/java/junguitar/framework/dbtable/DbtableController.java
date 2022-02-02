@@ -33,14 +33,15 @@ public class DbtableController {
 
 	@GetMapping("info")
 	@Transactional
-	public String info(@RequestParam(required = true) String schemaName) {
+	public String info(@RequestParam(required = true) String schemaName,
+			@RequestParam(required = false) boolean commentRows) {
 		List<Table> tables = getTables(schemaName);
 
 		StringBuilder buf = new StringBuilder();
 
 		// Head
 		append(buf, "No", "Table", "Column", "Character", "Data Type", "Length", "Scale", "Rel. Table", "Rel. Column",
-				"Comment");
+				"Rows", "Comment");
 
 		// Rows
 		int[] i = { 0 };
@@ -48,16 +49,24 @@ public class DbtableController {
 		tables.forEach(table -> {
 			j[0] = 0;
 			// Table
-			append(buf, ++i[0], table.getName(), null, "T", null, null, null, null, null, table.getComment());
+			append(buf, ++i[0],
+					// Table
+					table.getName(), null,
+					// Character
+					("VIEW".equals(table.getType()) ? "V" : "T"), null, null, null, null, null,
+					// Rows
+					table.getRows(),
+					// Comment
+					table.getComment());
 			// Columns
 			table.getColumns().forEach(col -> append(buf,
 					// No
 					("'" + i[0] + "." + ++j[0]),
 					// Table
-					null,
+					table.getName(),
 					// Column
 					col.getName(),
-					// Charater
+					// Character
 					(col.isPrimaryKey() ? "PK" : (col.getRefTableName() != null ? "R" : null)),
 					// Data Type
 					col.getDataType(),
@@ -69,6 +78,8 @@ public class DbtableController {
 					col.getRefTableName(),
 					// Rel. Column
 					col.getRefColumnName(),
+					// Rows
+					table.getRows(),
 					// Comment
 					col.getComment()));
 		});
@@ -78,6 +89,20 @@ public class DbtableController {
 
 		return str;
 	}
+
+//	private static String values(Object... values) {
+//		StringBuilder buf = new StringBuilder();
+//		for (Object value : values) {
+//			if (value == null || value.toString().isBlank()) {
+//				continue;
+//			}
+//			if (!buf.isEmpty()) {
+//				buf.append(", ");
+//			}
+//			buf.append(value);
+//		}
+//		return buf.toString();
+//	}
 
 	@GetMapping("/columns/dictionaries/info")
 	@Transactional
@@ -142,12 +167,14 @@ public class DbtableController {
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaName", schemaName);
 			stream = npjo.queryForStream(
-					"SELECT LOWER(table_name) as name, table_comment as comment FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
+					"SELECT LOWER(table_name) name, table_type type, table_rows `rows`, table_comment comment FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
 					params, new RowMapper<Table>() {
 						@Override
 						public Table mapRow(ResultSet rs, int rowNum) throws SQLException {
 							Table table = new Table();
 							table.setName(rs.getString("name"));
+							table.setType(rs.getString("type"));
+							table.setRows(rs.getLong("rows"));
 							table.setComment(rs.getString("comment"));
 							return table;
 						}
@@ -165,7 +192,7 @@ public class DbtableController {
 				params.put("schemaName", schemaName);
 				params.put("tableName", table.getName());
 				Stream<Column> cstream = npjo.queryForStream(
-						"SELECT LOWER(column_name) as column_name, LOWER(data_type) as data_type, numeric_precision, datetime_precision, numeric_scale, column_key"
+						"SELECT LOWER(column_name) column_name, LOWER(data_type) data_type, numeric_precision, datetime_precision, numeric_scale, column_key"
 								+ " FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName ORDER BY ordinal_position",
 						params, new RowMapper<Column>() {
 							@Override
@@ -206,7 +233,7 @@ public class DbtableController {
 				params.put("schemaName", schemaName);
 				params.put("tableName", table.getName());
 				Stream<Column> cstream = npjo.queryForStream(
-						"SELECT LOWER(column_name) column_name, LOWER(referenced_table_name) as ref_table_name, LOWER(referenced_column_name) as ref_column_name"
+						"SELECT LOWER(column_name) column_name, LOWER(referenced_table_name) ref_table_name, LOWER(referenced_column_name) ref_column_name"
 								+ " FROM information_schema.key_column_usage WHERE LOWER(table_schema) = LOWER(:schemaName)"
 								+ " AND LOWER(TABLE_NAME) = :tableName AND referenced_table_name is not null",
 						params, new RowMapper<Column>() {
