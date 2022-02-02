@@ -3,9 +3,11 @@ package junguitar.framework.resource.dbtable.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,9 +28,10 @@ public class DbtableService {
 	@Autowired
 	private TableService tableService;
 
-	public String info(String schemaName, String sequence, String sheetPath, String sheetName,
-			String dictionaySheetName) {
+	public String info(String schemaName, String sheetPath, String sheetName, String dictionaySheetName) {
 		Map<String, Table> tables = tableService.getTables(schemaName);
+
+		Map<String, List<String>> seqs = new LinkedHashMap<>();
 
 		if (!ObjectUtils.isEmpty(sheetPath)) {
 			if (!ObjectUtils.isEmpty(sheetName)) {
@@ -38,7 +41,7 @@ public class DbtableService {
 				for (RowData data : sheetData.getRows()) {
 					String table = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Table");
 					String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
-					String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Character");
+					String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Div");
 					String relTable = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Rel. Table");
 					String relColumn = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Rel. Column");
 					String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
@@ -52,11 +55,20 @@ public class DbtableService {
 					}
 
 					if (tableFlag || viewFlag) {
+						if (!seqs.containsKey(table)) {
+							seqs.put(table, new ArrayList<>());
+						}
+
 						if (!ObjectUtils.isEmpty(comment)) {
 							tables.get(table).setComment(comment);
 						}
 						continue;
 					}
+
+					if (!seqs.containsKey(table)) {
+						seqs.put(table, new ArrayList<>());
+					}
+					seqs.get(table).add(column);
 
 					for (Column col : tables.get(table).getColumns()) {
 						if (column.equals(col.getName())) {
@@ -112,24 +124,36 @@ public class DbtableService {
 		StringBuilder buf = new StringBuilder();
 
 		// Header
-		DbtableUtils.appendRow(buf, "No.", "Table", "Column", "Character", "Data Type", "Length", "Scale", "Rel. Table",
-				"Rel. Column", "Rows", "Comment");
+		DbtableUtils.appendRow(buf, "No.", "Table", "Column", "Div", "Data Type", "Length", "Scale", "Rel. Table",
+				"Rel. Column", "Rows", "Added", "Comment");
 
 		// Rows
 		int[] i = { 0 };
 
-		if (sequence != null && !sequence.isBlank()) {
-			for (String name : StringUtils.tokenizeToStringArray(sequence, ",")) {
+		if (!seqs.isEmpty()) {
+			for (String name : seqs.keySet()) {
 				name = name.toLowerCase();
 				if (!tables.containsKey(name)) {
 					continue;
 				}
 				Table table = tables.remove(name);
+
+				// Columns
+				Map<String, Column> cols = table.getColumns().stream()
+						.collect(Collectors.toMap(Column::getName, col -> col, (x, y) -> y, LinkedHashMap::new));
+				List<Column> list = seqs.get(name).stream().filter(cname -> cols.containsKey(cname))
+						.map(cname -> cols.remove(cname)).collect(Collectors.toList());
+				cols.values().forEach(col -> col.setAdded(true));
+				list.addAll(cols.values());
+				table.setColumns(list);
+
 				appendTable(buf, table, ++i[0]);
 			}
 		}
 
 		tables.values().forEach(table -> {
+			table.setAdded(true);
+			table.getColumns().forEach(col -> col.setAdded(true));
 			appendTable(buf, table, ++i[0]);
 		});
 
@@ -141,13 +165,17 @@ public class DbtableService {
 
 	private static void appendTable(StringBuilder buf, Table table, int index) {
 		// Table
-		DbtableUtils.appendRow(buf, index,
+		DbtableUtils.appendRow(buf,
+				// No
+				index,
 				// Table
 				table.getName(), null,
-				// Character
+				// Div
 				("VIEW".equals(table.getType()) ? "V" : "T"), null, null, null, null, null,
 				// Rows
 				table.getRows(),
+				// Added
+				table.isAdded() ? "O" : null,
 				// Comment
 				table.getComment());
 
@@ -160,7 +188,7 @@ public class DbtableService {
 				table.getName(),
 				// Column
 				col.getName(),
-				// Character
+				// Div
 				(col.isPrimaryKey() ? "PK" : (col.isRef() ? "R" : (col.getRefTableName() != null ? "RC" : null))),
 				// Data Type
 				col.getDataType(),
@@ -174,6 +202,8 @@ public class DbtableService {
 				col.getRefColumnName(),
 				// Rows
 				table.getRows(),
+				// Added
+				col.isAdded() ? "O" : null,
 				// Comment
 				col.getComment()));
 	}

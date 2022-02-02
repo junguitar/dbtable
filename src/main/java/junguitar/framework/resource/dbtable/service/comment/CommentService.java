@@ -27,13 +27,13 @@ public class CommentService {
 		Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
 
 		StringBuilder buf = new StringBuilder();
-		DbtableUtils.appendRow(buf, "No.", "Table", "Column", "Character", "Comment");
+		DbtableUtils.appendRow(buf, "No.", "Table", "Column", "Div", "Comment");
 
 		int i = 0;
 		for (RowData data : sheetData.getRows()) {
 			String table = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Table");
 			String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
-			String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Character");
+			String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Div");
 			String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
 
 			boolean tableFlag = "T".equals(div);
@@ -59,7 +59,7 @@ public class CommentService {
 		for (RowData data : sheetData.getRows()) {
 			String table = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Table");
 			String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
-			String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Character");
+			String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Div");
 			String dataType = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Data Type");
 			String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
 

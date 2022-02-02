@@ -13,5 +13,6 @@ public class Column {
 	private boolean ref;
 	private String refTableName;
 	private String refColumnName;
+	private boolean added;
 	private String comment;
 }

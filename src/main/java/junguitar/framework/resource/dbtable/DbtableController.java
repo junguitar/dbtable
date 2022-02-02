@@ -20,10 +20,9 @@ public class DbtableController {
 
 	@GetMapping("info")
 	public String info(@RequestParam(required = true) String schemaName,
-			@RequestParam(required = false) String sequence, @RequestParam(required = false) String sheetPath,
-			@RequestParam(required = false) String sheetName,
+			@RequestParam(required = false) String sheetPath, @RequestParam(required = false) String sheetName,
 			@RequestParam(required = false) String dictionaySheetName) {
-		return service.info(schemaName, sequence, sheetPath, sheetName, dictionaySheetName);
+		return service.info(schemaName, sheetPath, sheetName, dictionaySheetName);
 	}
 
 	@GetMapping("columns/dictionaries/info")
