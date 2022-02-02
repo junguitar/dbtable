@@ -13,25 +13,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import junguitar.framework.resource.dbtable.model.Column;
 import junguitar.framework.resource.dbtable.model.Table;
-import junguitar.framework.resource.dbtable.service.gettables.GetTables;
+import junguitar.framework.resource.dbtable.service.table.TableService;
+import junguitar.framework.resource.dbtable.util.DbtableUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class DbtableService {
 	@Autowired
-	private GetTables ds;
+	private TableService tableService;
 
 	@GetMapping("info")
 	public String info(@RequestParam(required = true) String schemaName,
 			@RequestParam(required = false) String sequence) {
-		Map<String, Table> tables = ds.getTables(schemaName);
+		Map<String, Table> tables = tableService.getTables(schemaName);
 
 		StringBuilder buf = new StringBuilder();
 
-		// Head
-		append(buf, "No", "Table", "Column", "Character", "Data Type", "Length", "Scale", "Rel. Table", "Rel. Column",
-				"Rows", "Comment");
+		// Header
+		DbtableUtils.appendRow(buf, "No.", "Table", "Column", "Character", "Data Type", "Length", "Scale", "Rel. Table",
+				"Rel. Column", "Rows", "Comment");
 
 		// Rows
 		int[] i = { 0 };
@@ -59,7 +60,7 @@ public class DbtableService {
 
 	private static void appendTable(StringBuilder buf, Table table, int index) {
 		// Table
-		append(buf, index,
+		DbtableUtils.appendRow(buf, index,
 				// Table
 				table.getName(), null,
 				// Character
@@ -71,7 +72,7 @@ public class DbtableService {
 
 		int[] i = { 0 };
 		// Columns
-		table.getColumns().forEach(col -> append(buf,
+		table.getColumns().forEach(col -> DbtableUtils.appendRow(buf,
 				// No
 				("'" + index + "." + ++i[0]),
 				// Table
@@ -102,8 +103,8 @@ public class DbtableService {
 
 		StringBuilder buf = new StringBuilder();
 
-		// Head
-		append(buf, "No", "Column", "Data Type", "Length", "Scale", "Comment", "Tables");
+		// Header
+		DbtableUtils.appendRow(buf, "No.", "Column", "Data Type", "Length", "Scale", "Comment", "Tables");
 
 		// Rows
 		int i = 0;
@@ -114,7 +115,7 @@ public class DbtableService {
 			}
 
 			Column col = list.get(0);
-			append(buf, ++i, col.getName(), col.getDataType(), col.getLength(), col.getScale(), col.getComment());
+			DbtableUtils.appendRow(buf, ++i, col.getName(), col.getDataType(), col.getLength(), col.getScale(), col.getComment());
 			int j = 0;
 			for (Column item : list) {
 				buf.append(j++ == 0 ? "\t" : ", ").append(StringUtils.capitalize(item.getTableName()));
@@ -128,7 +129,7 @@ public class DbtableService {
 	}
 
 	private Map<String, List<Column>> getColumnsDictionaries(String schemaName) {
-		Map<String, Table> tables = ds.getTables(schemaName);
+		Map<String, Table> tables = tableService.getTables(schemaName);
 
 		Map<String, List<Column>> map = new TreeMap<>();
 
@@ -163,13 +164,4 @@ public class DbtableService {
 //		return buf.toString();
 //	}
 
-	private static void append(StringBuilder buf, Object... values) {
-		int i = 0;
-		for (Object value : values) {
-			buf.append(i++ == 0 ? "\r\n" : "\t");
-			if (value != null) {
-				buf.append(value);
-			}
-		}
-	}
 }

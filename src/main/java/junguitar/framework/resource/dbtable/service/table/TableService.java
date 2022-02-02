@@ -1,4 +1,4 @@
-package junguitar.framework.resource.dbtable.service.gettables;
+package junguitar.framework.resource.dbtable.service.table;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,11 +18,11 @@ import junguitar.framework.resource.dbtable.model.Column;
 import junguitar.framework.resource.dbtable.model.Table;
 
 @Service
-@Transactional
-public class GetTables {
+public class TableService {
 	@Autowired
 	private NamedParameterJdbcOperations npjo;
 
+	@Transactional
 	public Map<String, Table> getTables(String schemaName) {
 		// Tables
 		Map<String, Table> map = new LinkedHashMap<>();
