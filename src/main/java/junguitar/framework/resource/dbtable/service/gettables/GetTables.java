@@ -1,4 +1,4 @@
-package junguitar.framework.resource.dbtable;
+package junguitar.framework.resource.dbtable.service.gettables;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +19,7 @@ import junguitar.framework.resource.dbtable.model.Table;
 
 @Service
 @Transactional
-public class DbtableService {
+public class GetTables {
 	@Autowired
 	private NamedParameterJdbcOperations npjo;
 

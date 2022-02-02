@@ -1,4 +1,4 @@
-package junguitar.framework.resource.dbtable;
+package junguitar.framework.resource.dbtable.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,22 +6,21 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import junguitar.framework.resource.dbtable.model.Column;
 import junguitar.framework.resource.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.service.gettables.GetTables;
 import lombok.extern.slf4j.Slf4j;
 
-@RestController
-@RequestMapping("api/framework/dbtables")
+@Service
 @Slf4j
-public class DbtableController {
+public class DbtableService {
 	@Autowired
-	private DbtableService ds;
+	private GetTables ds;
 
 	@GetMapping("info")
 	public String info(@RequestParam(required = true) String schemaName,
