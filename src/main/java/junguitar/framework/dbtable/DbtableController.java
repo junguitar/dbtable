@@ -1,19 +1,11 @@
 package junguitar.framework.dbtable;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,13 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DbtableController {
 	@Autowired
-	private NamedParameterJdbcOperations npjo;
+	private DbtableService ds;
 
 	@GetMapping("info")
-	@Transactional
 	public String info(@RequestParam(required = true) String schemaName,
-			@RequestParam(required = false) boolean commentRows) {
-		List<Table> tables = getTables(schemaName);
+			@RequestParam(required = false) String sequence) {
+		Map<String, Table> tables = ds.getTables(schemaName);
 
 		StringBuilder buf = new StringBuilder();
 
@@ -45,43 +36,20 @@ public class DbtableController {
 
 		// Rows
 		int[] i = { 0 };
-		int[] j = { 0 };
-		tables.forEach(table -> {
-			j[0] = 0;
-			// Table
-			append(buf, ++i[0],
-					// Table
-					table.getName(), null,
-					// Character
-					("VIEW".equals(table.getType()) ? "V" : "T"), null, null, null, null, null,
-					// Rows
-					table.getRows(),
-					// Comment
-					table.getComment());
-			// Columns
-			table.getColumns().forEach(col -> append(buf,
-					// No
-					("'" + i[0] + "." + ++j[0]),
-					// Table
-					table.getName(),
-					// Column
-					col.getName(),
-					// Character
-					(col.isPrimaryKey() ? "PK" : (col.getRefTableName() != null ? "R" : null)),
-					// Data Type
-					col.getDataType(),
-					// Length
-					col.getLength(),
-					// Scale
-					col.getScale(),
-					// Rel. Table
-					col.getRefTableName(),
-					// Rel. Column
-					col.getRefColumnName(),
-					// Rows
-					table.getRows(),
-					// Comment
-					col.getComment()));
+
+		if (sequence != null && !sequence.isBlank()) {
+			for (String name : StringUtils.tokenizeToStringArray(sequence, ",")) {
+				name = name.toLowerCase();
+				if (!tables.containsKey(name)) {
+					continue;
+				}
+				Table table = tables.remove(name);
+				appendTable(buf, table, ++i[0]);
+			}
+		}
+
+		tables.values().forEach(table -> {
+			appendTable(buf, table, ++i[0]);
 		});
 
 		String str = buf.toString();
@@ -90,22 +58,46 @@ public class DbtableController {
 		return str;
 	}
 
-//	private static String values(Object... values) {
-//		StringBuilder buf = new StringBuilder();
-//		for (Object value : values) {
-//			if (value == null || value.toString().isBlank()) {
-//				continue;
-//			}
-//			if (!buf.isEmpty()) {
-//				buf.append(", ");
-//			}
-//			buf.append(value);
-//		}
-//		return buf.toString();
-//	}
+	private static void appendTable(StringBuilder buf, Table table, int index) {
+		// Table
+		append(buf, index,
+				// Table
+				table.getName(), null,
+				// Character
+				("VIEW".equals(table.getType()) ? "V" : "T"), null, null, null, null, null,
+				// Rows
+				table.getRows(),
+				// Comment
+				table.getComment());
+
+		int[] i = { 0 };
+		// Columns
+		table.getColumns().forEach(col -> append(buf,
+				// No
+				("'" + index + "." + ++i[0]),
+				// Table
+				table.getName(),
+				// Column
+				col.getName(),
+				// Character
+				(col.isPrimaryKey() ? "PK" : (col.getRefTableName() != null ? "R" : null)),
+				// Data Type
+				col.getDataType(),
+				// Length
+				col.getLength(),
+				// Scale
+				col.getScale(),
+				// Rel. Table
+				col.getRefTableName(),
+				// Rel. Column
+				col.getRefColumnName(),
+				// Rows
+				table.getRows(),
+				// Comment
+				col.getComment()));
+	}
 
 	@GetMapping("/columns/dictionaries/info")
-	@Transactional
 	public String infoColumnsDictionaries(@RequestParam(required = true) String schemaName) {
 		Map<String, List<Column>> map = getColumnsDictionaries(schemaName);
 
@@ -137,11 +129,11 @@ public class DbtableController {
 	}
 
 	private Map<String, List<Column>> getColumnsDictionaries(String schemaName) {
-		List<Table> tables = getTables(schemaName);
+		Map<String, Table> tables = ds.getTables(schemaName);
 
 		Map<String, List<Column>> map = new TreeMap<>();
 
-		for (Table table : tables) {
+		for (Table table : tables.values()) {
 			for (Column col : table.getColumns()) {
 				String key = col.getName() + "," + col.getDataType() + "," + col.getLength() + "," + col.getScale();
 				List<Column> list;
@@ -158,104 +150,19 @@ public class DbtableController {
 		return map;
 	}
 
-	private List<Table> getTables(String schemaName) {
-		// Tables
-		List<Table> list = new ArrayList<>();
-//		SELECT * FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name
-		Stream<Table> stream;
-		{
-			Map<String, Object> params = new HashMap<>();
-			params.put("schemaName", schemaName);
-			stream = npjo.queryForStream(
-					"SELECT LOWER(table_name) name, table_type type, table_rows `rows`, table_comment comment FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
-					params, new RowMapper<Table>() {
-						@Override
-						public Table mapRow(ResultSet rs, int rowNum) throws SQLException {
-							Table table = new Table();
-							table.setName(rs.getString("name"));
-							table.setType(rs.getString("type"));
-							table.setRows(rs.getLong("rows"));
-							table.setComment(rs.getString("comment"));
-							return table;
-						}
-					});
-		}
-
-		stream.forEach(table -> {
-			list.add(table);
-
-			// Columns
-//			SELECT * FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName ORDER BY ordinal_position;
-			Map<String, Column> cols = new LinkedHashMap<>();
-			{
-				Map<String, Object> params = new HashMap<>();
-				params.put("schemaName", schemaName);
-				params.put("tableName", table.getName());
-				Stream<Column> cstream = npjo.queryForStream(
-						"SELECT LOWER(column_name) column_name, LOWER(data_type) data_type, numeric_precision, datetime_precision, numeric_scale, column_key"
-								+ " FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName ORDER BY ordinal_position",
-						params, new RowMapper<Column>() {
-							@Override
-							public Column mapRow(ResultSet rs, int rowNum) throws SQLException {
-								Column col = new Column();
-								col.setTableName(table.getName());
-								col.setName(rs.getString("column_name"));
-								col.setDataType(rs.getString("data_type"));
-								String key = rs.getString("column_key");
-
-								col.setLength(
-										Math.max(rs.getInt("numeric_precision"), rs.getInt("datetime_precision")));
-								col.setScale(rs.getInt("numeric_scale"));
-
-								if (key != null) {
-									// PK
-									if ("PRI".equals(key)) {
-										col.setPrimaryKey(true);
-									}
-//									// Relation
-//									else if ("MUL".equals(key)) {
-//										col.setRefTableName("MUL");
-//									}
-								}
-
-								return col;
-							}
-						});
-				cstream.forEach(col -> {
-					cols.put(col.getName(), col);
-				});
-			}
-
-			// Relations
-//			SELECT * FROM information_schema.key_column_usage WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName AND referenced_table_name is not null
-			{
-				Map<String, Object> params = new HashMap<>();
-				params.put("schemaName", schemaName);
-				params.put("tableName", table.getName());
-				Stream<Column> cstream = npjo.queryForStream(
-						"SELECT LOWER(column_name) column_name, LOWER(referenced_table_name) ref_table_name, LOWER(referenced_column_name) ref_column_name"
-								+ " FROM information_schema.key_column_usage WHERE LOWER(table_schema) = LOWER(:schemaName)"
-								+ " AND LOWER(TABLE_NAME) = :tableName AND referenced_table_name is not null",
-						params, new RowMapper<Column>() {
-							@Override
-							public Column mapRow(ResultSet rs, int rowNum) throws SQLException {
-								Column col = cols.get(rs.getString("column_name"));
-								col.setRefTableName(rs.getString("ref_table_name"));
-								col.setRefColumnName(rs.getString("ref_column_name"));
-								return col;
-							}
-						});
-				cstream.forEach(col -> {
-
-				});
-			}
-
-			table.setColumns(new ArrayList<>(cols.values()));
-
-		});
-
-		return list;
-	}
+//	private static String values(Object... values) {
+//		StringBuilder buf = new StringBuilder();
+//		for (Object value : values) {
+//			if (value == null || value.toString().isBlank()) {
+//				continue;
+//			}
+//			if (!buf.isEmpty()) {
+//				buf.append(", ");
+//			}
+//			buf.append(value);
+//		}
+//		return buf.toString();
+//	}
 
 	private static void append(StringBuilder buf, Object... values) {
 		int i = 0;
