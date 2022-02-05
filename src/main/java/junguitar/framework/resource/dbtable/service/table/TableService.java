@@ -26,7 +26,7 @@ public class TableService {
 	public Map<String, Table> getTables(String schemaName) {
 		// Tables
 		Map<String, Table> map = new LinkedHashMap<>();
-//		SELECT * FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name
+		// SELECT * FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name
 		Stream<Table> stream;
 		{
 			Map<String, Object> params = new HashMap<>();
@@ -50,7 +50,7 @@ public class TableService {
 			map.put(table.getName(), table);
 
 			// Columns
-//			SELECT * FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName ORDER BY ordinal_position;
+			// SELECT * FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(table_name) = :tableName ORDER BY ordinal_position;
 			Map<String, Column> cols = new LinkedHashMap<>();
 			{
 				Map<String, Object> params = new HashMap<>();
@@ -58,7 +58,7 @@ public class TableService {
 				params.put("tableName", table.getName());
 				Stream<Column> cstream = npjo.queryForStream(
 						"SELECT LOWER(column_name) column_name, LOWER(data_type) data_type, character_maximum_length, numeric_precision, datetime_precision, numeric_scale, column_key"
-								+ " FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName ORDER BY ordinal_position",
+								+ " FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(table_name) = :tableName ORDER BY ordinal_position",
 						params, new RowMapper<Column>() {
 							@Override
 							public Column mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -98,7 +98,7 @@ public class TableService {
 			}
 
 			// Relations
-//			SELECT * FROM information_schema.key_column_usage WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName AND referenced_table_name is not null
+			// SELECT * FROM information_schema.key_column_usage WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(table_name) = :tableName AND referenced_table_name is not null
 			{
 				Map<String, Object> params = new HashMap<>();
 				params.put("schemaName", schemaName);
@@ -106,7 +106,7 @@ public class TableService {
 				Stream<Column> cstream = npjo.queryForStream(
 						"SELECT LOWER(column_name) column_name, LOWER(referenced_table_name) ref_table_name, LOWER(referenced_column_name) ref_column_name"
 								+ " FROM information_schema.key_column_usage WHERE LOWER(table_schema) = LOWER(:schemaName)"
-								+ " AND LOWER(TABLE_NAME) = :tableName AND referenced_table_name is not null",
+								+ " AND LOWER(table_name) = :tableName AND referenced_table_name is not null",
 						params, new RowMapper<Column>() {
 							@Override
 							public Column mapRow(ResultSet rs, int rowNum) throws SQLException {
