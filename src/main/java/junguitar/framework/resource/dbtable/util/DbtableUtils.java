@@ -2,7 +2,6 @@ package junguitar.framework.resource.dbtable.util;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -22,13 +22,23 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.util.ResourceUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
 public class DbtableUtils {
+	private static DbtableUtils bean = null;
+
+	public DbtableUtils() {
+		bean = this;
+	}
+
+	@Value("${app.tempDir}")
+	private String tempDir;
 
 	public static void appendRow(StringBuilder buf, Object... values) {
 		int i = 0;
@@ -92,6 +102,7 @@ public class DbtableUtils {
 			return sheetData;
 		} finally {
 			closeQuietly(workbook);
+			FileUtils.deleteQuietly(new File(toTempPath(sheetPath)));
 		}
 	}
 
@@ -292,20 +303,42 @@ public class DbtableUtils {
 	}
 
 	private static Workbook getWorkbook(String sheetPath) {
-		File file;
-		try {
-			file = ResourceUtils.getFile(sheetPath);
-		} catch (FileNotFoundException e) {
+		File fileFrom = new File(sheetPath);
+//		try {
+//			fileFrom = ResourceUtils.getFile(sheetPath);
+//		} catch (FileNotFoundException e) {
+//			throw new RuntimeException("Cannot find the file: " + sheetPath);
+//		}
+		if (!fileFrom.exists()) {
 			throw new RuntimeException("Cannot find the file: " + sheetPath);
 		}
 
-		Workbook workbook;
+		File file = null;
 		try {
-			workbook = WorkbookFactory.create(file);
-		} catch (EncryptedDocumentException | IOException e) {
-			throw new RuntimeException(e);
+			String path = toTempPath(sheetPath);
+			file = new File(path);
+			try {
+				FileUtils.copyFile(fileFrom, file);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+
+			Workbook workbook;
+			try {
+				workbook = WorkbookFactory.create(file);
+			} catch (EncryptedDocumentException | IOException e) {
+				throw new RuntimeException(e);
+			}
+			return workbook;
+
+		} finally {
+			FileUtils.deleteQuietly(file);
 		}
-		return workbook;
+	}
+
+	private static String toTempPath(String path) {
+		File file = new File(path);
+		return bean.tempDir + "/" + file.getName();
 	}
 
 	@Data

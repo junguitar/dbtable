@@ -19,3 +19,6 @@ spring:
       minimum-idle: 1
       maximum-pool-size: 30
       connection-test-query: select 1
+
+app:
+  tempDir: C:/temp
