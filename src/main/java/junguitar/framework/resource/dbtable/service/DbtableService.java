@@ -328,7 +328,7 @@ public class DbtableService {
 		return map;
 	}
 
-	public static String toKey(Object... objs) {
+	private static String toKey(Object... objs) {
 		String value = StringUtils.arrayToCommaDelimitedString(objs);
 		return value;
 	}
