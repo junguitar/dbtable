@@ -57,7 +57,7 @@ public class TableService {
 				params.put("schemaName", schemaName);
 				params.put("tableName", table.getName());
 				Stream<Column> cstream = npjo.queryForStream(
-						"SELECT LOWER(column_name) column_name, LOWER(data_type) data_type, numeric_precision, datetime_precision, numeric_scale, column_key"
+						"SELECT LOWER(column_name) column_name, LOWER(data_type) data_type, character_maximum_length, numeric_precision, datetime_precision, numeric_scale, column_key"
 								+ " FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(TABLE_NAME) = :tableName ORDER BY ordinal_position",
 						params, new RowMapper<Column>() {
 							@Override
@@ -67,9 +67,15 @@ public class TableService {
 								col.setName(rs.getString("column_name"));
 								col.setDataType(rs.getString("data_type"));
 								String key = rs.getString("column_key");
-
-								col.setLength(
-										Math.max(rs.getInt("numeric_precision"), rs.getInt("datetime_precision")));
+								Long length = Math.max(rs.getLong("character_maximum_length"),
+										rs.getLong("numeric_precision"));
+								if (length <= 0) {
+									length = Math.max(rs.getLong("numeric_precision"),
+											rs.getLong("datetime_precision"));
+								}
+								if (length < 10000) {
+									col.setLength(length.intValue());
+								}
 								col.setScale(rs.getInt("numeric_scale"));
 
 								if (key != null) {
