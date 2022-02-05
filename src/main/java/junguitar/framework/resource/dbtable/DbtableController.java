@@ -27,8 +27,9 @@ public class DbtableController {
 
 	@GetMapping("columns/dictionaries/info")
 	public String infoColumnsDictionaries(@RequestParam(required = true) String schemaName,
-			@RequestParam(required = false) String sheetPath, @RequestParam(required = false) String sheetName) {
-		return service.infoColumnsDictionaries(schemaName, sheetPath, sheetName);
+			@RequestParam(required = false) String sheetPath, @RequestParam(required = false) String sheetName,
+			@RequestParam(required = false) String tablesSheetName) {
+		return service.infoColumnsDictionaries(schemaName, sheetPath, sheetName, tablesSheetName);
 	}
 
 	@GetMapping("comments/info-by-excel")

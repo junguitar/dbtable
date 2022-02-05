@@ -103,15 +103,14 @@ public class DbtableService {
 						continue;
 					}
 
-					String key = column + "," + dataType + "," + length + "," + scale;
+					String key = toKey(column, dataType, length, scale);
 					comments.put(key, comment);
 				}
 
 				if (!comments.isEmpty()) {
 					for (Table table : tables.values()) {
 						for (Column col : table.getColumns()) {
-							String key = col.getName() + "," + col.getDataType() + "," + col.getLength() + ","
-									+ col.getScale();
+							String key = toKey(col.getName(), col.getDataType(), col.getLength(), col.getScale());
 							if (comments.containsKey(key)) {
 								col.setComment(comments.get(key));
 							}
@@ -208,31 +207,74 @@ public class DbtableService {
 				col.getComment()));
 	}
 
-	public String infoColumnsDictionaries(String schemaName, String sheetPath, String sheetName) {
+	public String infoColumnsDictionaries(String schemaName, String sheetPath, String sheetName,
+			String tablesSheetName) {
 		Map<String, List<Column>> cols = getColumnsDictionaries(schemaName);
 
 		if (!ObjectUtils.isEmpty(sheetPath)) {
-			SheetData sheetData = DbtableUtils.getSheetData(sheetPath, sheetName);
-			Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
+			if (!ObjectUtils.isEmpty(sheetName)) {
+				SheetData sheetData = DbtableUtils.getSheetData(sheetPath, sheetName);
+				Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
 
-			for (RowData data : sheetData.getRows()) {
-				String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
-				String dataType = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Data Type");
-				int length = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Length")).intValue();
-				int scale = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Scale")).intValue();
-				String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
+				for (RowData data : sheetData.getRows()) {
+					String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
+					String dataType = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Data Type");
+					int length = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Length")).intValue();
+					int scale = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Scale")).intValue();
+					String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
 
-				if (ObjectUtils.isEmpty(column) || ObjectUtils.isEmpty(dataType) || ObjectUtils.isEmpty(scale)
-						|| ObjectUtils.isEmpty(scale) || ObjectUtils.isEmpty(comment)) {
-					continue;
+					if (ObjectUtils.isEmpty(column) || ObjectUtils.isEmpty(dataType) || ObjectUtils.isEmpty(scale)
+							|| ObjectUtils.isEmpty(scale) || ObjectUtils.isEmpty(comment)) {
+						continue;
+					}
+
+					String key = toKey(column, dataType, length, scale);
+					if (!cols.containsKey(key)) {
+						continue;
+					}
+
+					cols.get(key).get(0).setComment(comment);
 				}
+			}
 
-				String key = column + "," + dataType + "," + length + "," + scale;
-				if (!cols.containsKey(key)) {
-					continue;
+			if (!ObjectUtils.isEmpty(tablesSheetName)) {
+				SheetData sheetData = DbtableUtils.getSheetData(sheetPath, tablesSheetName);
+				Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
+
+				for (RowData data : sheetData.getRows()) {
+					String comment = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Comment");
+					if (ObjectUtils.isEmpty(comment)) {
+						continue;
+					}
+
+					String div = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Div");
+					boolean tableFlag = "T".equals(div);
+					boolean viewFlag = "V".equals(div);
+					if (tableFlag || viewFlag) {
+						continue;
+					}
+
+					String column = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Column");
+					if (ObjectUtils.isEmpty(column)) {
+						continue;
+					}
+
+					String dataType = DbtableUtils.getFieldValueStr(data, fieldsIndex, "Data Type");
+					int length = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Length")).intValue();
+					int scale = new BigDecimal(DbtableUtils.getFieldValueStr(data, fieldsIndex, "Scale")).intValue();
+
+					String key = toKey(column, dataType, length, scale);
+					if (!cols.containsKey(key)) {
+						continue;
+					}
+
+					Column col = cols.get(key).get(0);
+					if (!ObjectUtils.isEmpty(col.getComment())) {
+						continue;
+					}
+
+					col.setComment(comment);
 				}
-
-				cols.get(key).get(0).setComment(comment);
 			}
 		}
 
@@ -271,7 +313,7 @@ public class DbtableService {
 
 		for (Table table : tables.values()) {
 			for (Column col : table.getColumns()) {
-				String key = col.getName() + "," + col.getDataType() + "," + col.getLength() + "," + col.getScale();
+				String key = toKey(col.getName(), col.getDataType(), col.getLength(), col.getScale());
 				List<Column> list;
 				if (map.containsKey(key)) {
 					list = map.get(key);
@@ -284,6 +326,11 @@ public class DbtableService {
 		}
 
 		return map;
+	}
+
+	public static String toKey(Object... objs) {
+		String value = StringUtils.arrayToCommaDelimitedString(objs);
+		return value;
 	}
 
 //	private static String values(Object... values) {
