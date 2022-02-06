@@ -174,7 +174,7 @@ public class DbtableUtils {
 
 		Map<String, Integer> index = new LinkedHashMap<>();
 
-		int firstCellNum = header.getFirstCellNum();
+		int firstCellNum = Math.max(0, header.getFirstCellNum());
 		int lastCellNum = header.getLastCellNum() + 1;
 		for (int i = firstCellNum; i < lastCellNum; i++) {
 			Cell cell = header.getCell(i);
