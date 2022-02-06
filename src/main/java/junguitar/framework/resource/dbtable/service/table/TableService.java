@@ -23,10 +23,11 @@ public class TableService {
 	private NamedParameterJdbcOperations npjo;
 
 	@Transactional
-	public Map<String, Table> getTables(String schemaName) {
+	public Map<String, Table> getMap(String schemaName) {
 		// Tables
 		Map<String, Table> map = new LinkedHashMap<>();
-		// SELECT * FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name
+		// SELECT * FROM information_schema.tables WHERE LOWER(table_schema) =
+		// LOWER(:schemaName) ORDER BY table_name
 		Stream<Table> stream;
 		{
 			Map<String, Object> params = new HashMap<>();
@@ -50,7 +51,9 @@ public class TableService {
 			map.put(table.getName(), table);
 
 			// Columns
-			// SELECT * FROM information_schema.columns WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(table_name) = :tableName ORDER BY ordinal_position;
+			// SELECT * FROM information_schema.columns WHERE LOWER(table_schema) =
+			// LOWER(:schemaName) AND LOWER(table_name) = :tableName ORDER BY
+			// ordinal_position;
 			Map<String, Column> cols = new LinkedHashMap<>();
 			{
 				Map<String, Object> params = new HashMap<>();
@@ -98,7 +101,9 @@ public class TableService {
 			}
 
 			// Relations
-			// SELECT * FROM information_schema.key_column_usage WHERE LOWER(table_schema) = LOWER(:schemaName) AND LOWER(table_name) = :tableName AND referenced_table_name is not null
+			// SELECT * FROM information_schema.key_column_usage WHERE LOWER(table_schema) =
+			// LOWER(:schemaName) AND LOWER(table_name) = :tableName AND
+			// referenced_table_name is not null
 			{
 				Map<String, Object> params = new HashMap<>();
 				params.put("schemaName", schemaName);
@@ -117,6 +122,10 @@ public class TableService {
 								return col;
 							}
 						});
+
+				// Warning!!
+				// Never delete this empty block.
+				// If remove this block, previous logic won't be run.
 				cstream.forEach(col -> {
 
 				});

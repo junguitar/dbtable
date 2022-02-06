@@ -35,7 +35,7 @@ public class DbtableController {
 	@GetMapping("comments/info-by-excel")
 	public String infoCommentListByExcel(@RequestParam(required = true) String sheetPath,
 			@RequestParam(required = true) String sheetName) {
-		return commentService.infoCommentListByExcel(sheetPath, sheetName);
+		return commentService.infoListByExcel(sheetPath, sheetName);
 	}
 
 //	@PutMapping("comments/by-excel")

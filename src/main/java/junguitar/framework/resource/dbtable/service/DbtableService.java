@@ -29,7 +29,7 @@ public class DbtableService {
 	private TableService tableService;
 
 	public String info(String schemaName, String sheetPath, String sheetName, String dictionaySheetName) {
-		Map<String, Table> tables = tableService.getTables(schemaName);
+		Map<String, Table> tables = tableService.getMap(schemaName);
 
 		Map<String, List<String>> seqs = new LinkedHashMap<>();
 
@@ -307,7 +307,7 @@ public class DbtableService {
 	}
 
 	private Map<String, List<Column>> getColumnsDictionaries(String schemaName) {
-		Map<String, Table> tables = tableService.getTables(schemaName);
+		Map<String, Table> tables = tableService.getMap(schemaName);
 
 		Map<String, List<Column>> map = new TreeMap<>();
 

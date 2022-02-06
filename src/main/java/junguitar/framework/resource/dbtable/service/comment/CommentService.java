@@ -22,7 +22,7 @@ public class CommentService {
 	@Autowired
 	private ApplicationContext beans;
 
-	public String infoCommentListByExcel(String path, String sheetName) {
+	public String infoListByExcel(String path, String sheetName) {
 		SheetData sheetData = DbtableUtils.getSheetData(path, sheetName);
 		Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
 
@@ -52,7 +52,7 @@ public class CommentService {
 		return str;
 	}
 
-	public void putCommentListByExcel(String path, String sheetName) {
+	public void putListByExcel(String path, String sheetName) {
 		SheetData sheetData = DbtableUtils.getSheetData(path, sheetName);
 		Map<String, Integer> fieldsIndex = sheetData.getFieldsIndex();
 
