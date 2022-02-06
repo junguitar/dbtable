@@ -196,7 +196,7 @@ public class DbtableUtils {
 
 		RowData data = new RowData();
 		boolean found = false;
-		int firstCellNum = row.getFirstCellNum();
+		int firstCellNum = Math.max(0, row.getFirstCellNum());
 		int lastCellNum = row.getLastCellNum() + 1;
 		if (indexes != null && !indexes.isEmpty()) {
 			for (int index : indexes) {
