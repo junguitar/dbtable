@@ -28,6 +28,17 @@ public class DbtableService {
 	@Autowired
 	private TableService tableService;
 
+	/**
+	 * log info about dbtables' metadata by schemaName of the tables.<br>
+	 * If sheetPath and sheetName of spread sheet, which is already written, is input, It will get and use base information from the sheet.<br>
+	 * Also if the dictionarySheetName is input together, It will get and use base dictionary from the sheet.<br>
+	 * 
+	 * @param schemaName         Schema Name
+	 * @param sheetPath          Sheet Path (File Path)
+	 * @param sheetName          Sheet Name of Tables
+	 * @param dictionaySheetName Sheet Name of Dictionary
+	 * @return info str of dbtables
+	 */
 	public String info(String schemaName, String sheetPath, String sheetName, String dictionaySheetName) {
 		Map<String, Table> tables = tableService.getMap(schemaName);
 
@@ -207,6 +218,17 @@ public class DbtableService {
 				col.getComment()));
 	}
 
+	/**
+	 * log info about dbtables' columns' dataType and ditionary by schemaName of the tables and columns.<br>
+	 * If sheetPath and sheetName of spread sheet, which is already written, is input, It will get and use base information from the sheet.<br>
+	 * Also if the tablesSheetName is input together, It will get and use base columns' comments(only if still empty at dictionary) from the sheet.<br>
+	 * 
+	 * @param schemaName      Schema Name
+	 * @param sheetPath       Sheet Path (File Path)
+	 * @param sheetName       Sheet Name of Dictionary
+	 * @param tablesSheetName Sheet Name of Tables
+	 * @return info str of dbtables' columns' dataType and dictionary
+	 */
 	public String infoColumnsDictionaries(String schemaName, String sheetPath, String sheetName,
 			String tablesSheetName) {
 		Map<String, List<Column>> cols = getColumnsDictionaries(schemaName);
