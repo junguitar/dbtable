@@ -3,12 +3,14 @@ package junguitar.framework.resource.dbtable.service.table;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Service;
@@ -16,11 +18,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 import junguitar.framework.resource.dbtable.model.Column;
 import junguitar.framework.resource.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.util.CollectionOut;
 
 @Service
 public class TableService {
 	@Autowired
+	private ApplicationContext beans;
+
+	@Autowired
 	private NamedParameterJdbcOperations npjo;
+
+	public CollectionOut<Table> getColletion(String schemaName) {
+		CollectionOut<Table> output = new CollectionOut<>();
+		Map<String, Table> map = beans.getBean(TableService.class).getMap(schemaName);
+		if (map.isEmpty()) {
+			return output;
+		}
+		output.setContent(Collections.unmodifiableCollection(map.values()));
+		return output;
+	}
 
 	@Transactional
 	public Map<String, Table> getMap(String schemaName) {
