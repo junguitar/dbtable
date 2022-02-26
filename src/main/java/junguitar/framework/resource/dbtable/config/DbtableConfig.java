@@ -1,4 +1,4 @@
-package junguitar.framework.resource.dbtable;
+package junguitar.framework.resource.dbtable.config;
 
 import java.util.Properties;
 
