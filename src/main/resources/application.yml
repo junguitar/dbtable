@@ -27,3 +27,11 @@ junguitar:
 #  external-schemas:
 #    test1: http://localhost:9001
 #    test2: http://localhost:9002
+
+management:
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: '*'
+        exclude: threaddump, heapdump
