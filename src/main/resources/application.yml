@@ -2,6 +2,12 @@ server:
   port: 9000
 
 spring:
+  application:
+    name: junguitar-dbtable
+#  boot:
+#    admin:
+#      client:
+#        url: http://localhost:9090
 #  profiles:
 #    active: prod
   devtools:

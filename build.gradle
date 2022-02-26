@@ -19,11 +19,16 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	set('springBootAdminVersion', "2.5.5")
+}
+
 dependencies {
 	//implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'de.codecentric:spring-boot-admin-starter-client'
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 	//implementation 'org.springdoc:springdoc-openapi-ui'
 	compileOnly 'org.projectlombok:lombok'
@@ -34,6 +39,12 @@ dependencies {
 	
 	implementation 'org.apache.poi:poi:5.2.0'
 	implementation 'org.apache.poi:poi-ooxml:5.2.0'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "de.codecentric:spring-boot-admin-dependencies:${springBootAdminVersion}"
+	}
 }
 
 tasks.named('test') {
