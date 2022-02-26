@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.EncryptedDocumentException;
@@ -22,9 +23,14 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+import org.springframework.web.client.RestTemplate;
 
+import junguitar.framework.resource.dbtable.model.Table;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,8 +43,33 @@ public class DbtableUtils {
 		bean = this;
 	}
 
-	@Value("${app.tempDir}")
+	@Value("${junguitar.tempDir}")
 	private String tempDir;
+
+	@Autowired
+	@Qualifier(value = "externalSchemas")
+	private Properties schemas;
+
+	public static CollectionOut<Table> getExternalCollection(String externalSchemaName) {
+		Assert.notEmpty(bean.schemas, "junguitar.external-schemas properties is required!!");
+		Assert.notNull(externalSchemaName, "externalSchemaName is required!!");
+		if (!bean.schemas.containsKey(externalSchemaName)) {
+			throw new IllegalArgumentException(
+					"junguitar.external-schemas." + externalSchemaName + " properties is required!!");
+		}
+
+		String url = bean.schemas.getProperty(externalSchemaName) + "/api/framework/dbtables?schemaName="
+				+ externalSchemaName;
+
+		RestTemplate client = new RestTemplate();
+		TableCollectionOut output = new TableCollectionOut();
+		output = client.getForObject(url, TableCollectionOut.class);
+		return output;
+	}
+
+	public static class TableCollectionOut extends CollectionOut<Table> {
+
+	}
 
 	public static void appendRow(StringBuilder buf, Object... values) {
 		int i = 0;

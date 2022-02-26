@@ -1,8 +1,11 @@
 package junguitar.framework.resource.dbtable;
 
+import java.util.Properties;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -30,6 +33,12 @@ public class DbtableConfig {
 		NamedParameterJdbcTemplate bean = new NamedParameterJdbcTemplate(jdbcOperations());
 		bean.setCacheLimit(200);
 		return bean;
+	}
+
+	@Bean
+	@ConfigurationProperties(prefix = "junguitar.external-schemas")
+	public Properties externalSchemas() {
+		return new Properties();
 	}
 
 }

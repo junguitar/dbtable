@@ -2,6 +2,7 @@ package junguitar.framework.resource.dbtable.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +28,117 @@ import lombok.extern.slf4j.Slf4j;
 public class DbtableService {
 	@Autowired
 	private TableService tableService;
+
+	public String infoDiff(String schemaName, String externalSchemaName) {
+		Map<String, Table> schema = tableService.getMap(schemaName);
+		Map<String, Table> eschema = new LinkedHashMap<>();
+		Map<String, Column> cols = new LinkedHashMap<>();
+		Map<String, Column> ecols = new LinkedHashMap<>();
+		Map<String, List<String>> diffs = new LinkedHashMap<>();
+		Collection<Table> content = DbtableUtils.getExternalCollection(externalSchemaName).getContent();
+		for (Table etable : content) {
+			String tableName = etable.getName();
+			if (!schema.containsKey(tableName)) {
+				eschema.put(tableName, etable);
+				continue;
+			}
+
+			// table diff
+			Table table = schema.remove(tableName);
+			putDiff(diffs, tableName, "attribute", "type", schemaName, table.getType(), externalSchemaName,
+					etable.getType());
+			putDiff(diffs, tableName, "attribute", "comment", schemaName, table.getComment(), externalSchemaName,
+					etable.getComment());
+
+			table.getColumns().forEach(col -> cols.put(col.getTableName() + "." + col.getName(), col));
+			for (Column ecol : etable.getColumns()) {
+				String key = ecol.getTableName() + "." + ecol.getName();
+				if (!cols.containsKey(key)) {
+					ecols.put(key, ecol);
+					continue;
+				}
+
+				// column diff
+				Column col = cols.remove(key);
+				putDiff(diffs, tableName, col.getName(), "primaryKey", schemaName, col.isPrimaryKey(),
+						externalSchemaName, ecol.isPrimaryKey());
+				putDiff(diffs, tableName, col.getName(), "dataType", schemaName, col.getDataType(), externalSchemaName,
+						ecol.getDataType());
+				putDiff(diffs, tableName, col.getName(), "length", schemaName, col.getLength(), externalSchemaName,
+						ecol.getLength());
+				putDiff(diffs, tableName, col.getName(), "scale", schemaName, col.getScale(), externalSchemaName,
+						ecol.getScale());
+				putDiff(diffs, tableName, col.getName(), "ref", schemaName, col.isRef(), externalSchemaName,
+						ecol.isRef());
+				putDiff(diffs, tableName, col.getName(), "refTableName", schemaName, col.getRefTableName(),
+						externalSchemaName, ecol.getRefTableName());
+				putDiff(diffs, tableName, col.getName(), "refColumnName", schemaName, col.getRefColumnName(),
+						externalSchemaName, ecol.getRefColumnName());
+				putDiff(diffs, tableName, col.getName(), "comment", schemaName, col.getComment(), externalSchemaName,
+						ecol.getComment());
+
+			}
+		}
+
+		StringBuilder buf = new StringBuilder();
+
+		if (!eschema.isEmpty()) {
+			buf.append("\r\n").append(schemaName).append(" no such tables: ");
+			eschema.keySet().forEach(name -> buf.append("\r\n\t").append(name));
+		}
+		if (!ecols.isEmpty()) {
+			buf.append("\r\n").append(schemaName).append(" no such columns: ");
+			ecols.keySet().forEach(name -> buf.append("\r\n\t").append(name));
+		}
+		if (!schema.isEmpty()) {
+			buf.append("\r\n").append(externalSchemaName).append(" no such tables: ");
+			schema.keySet().forEach(name -> buf.append("\r\n\t").append(name));
+		}
+		if (!cols.isEmpty()) {
+			buf.append("\r\n").append(externalSchemaName).append(" no such columns: ");
+			cols.keySet().forEach(name -> buf.append("\r\n\t").append(name));
+		}
+
+		if (!diffs.isEmpty()) {
+			buf.append("\r\ndifferences: ");
+			diffs.forEach((tableName, list) -> {
+				buf.append("\r\n\t").append(tableName);
+				list.forEach(message -> buf.append(message));
+			});
+		}
+
+		String str = buf.toString();
+		log.info(str);
+
+		return str;
+	}
+
+	private static void putDiff(Map<String, List<String>> diff, String tableName, String type, String key,
+			String schema1, Object value1, String schema2, Object value2) {
+		if (value1 == null || value2 == null) {
+			if (value1 == null && value2 == null) {
+				return;
+			}
+			addDiff(diff, tableName, type + "." + key + ": " + schema1 + "=" + value1 + ", " + schema2 + "=" + value2);
+		}
+
+		if (value1.equals(value2)) {
+			return;
+		}
+		addDiff(diff, tableName, "\r\n\t\t" + type + "." + key + ":\r\n\t\t\t" + schema1 + ": " + value1 + "\r\n\t\t\t"
+				+ schema2 + ": " + value2);
+	}
+
+	private static void addDiff(Map<String, List<String>> diff, String tableName, String message) {
+		List<String> list;
+		if (diff.containsKey(tableName)) {
+			list = diff.get(tableName);
+		} else {
+			list = new ArrayList<>();
+			diff.put(tableName, list);
+		}
+		list.add(message);
+	}
 
 	/**
 	 * log info about dbtables' metadata by schemaName of the tables.<br>

@@ -20,5 +20,8 @@ spring:
       maximum-pool-size: 30
       connection-test-query: select 1
 
-app:
+junguitar:
   tempDir: C:/temp
+#  external-schemas:
+#    test1: http://localhost:9001
+#    test2: http://localhost:9002

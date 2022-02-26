@@ -26,6 +26,11 @@ public class DbtableControllerImpl implements DbtableController {
 	}
 
 	@Override
+	public String infoDiff(String schemaName, String externalSchemaName) {
+		return service.infoDiff(schemaName, externalSchemaName);
+	}
+
+	@Override
 	public String info(String schemaName, String sheetPath, String sheetName, String dictionaySheetName) {
 		return service.info(schemaName, sheetPath, sheetName, dictionaySheetName);
 	}

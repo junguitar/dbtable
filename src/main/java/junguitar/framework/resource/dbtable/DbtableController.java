@@ -13,6 +13,10 @@ public interface DbtableController {
 	@GetMapping
 	CollectionOut<Table> getCollection(@RequestParam(required = true) String schemaName);
 
+	@GetMapping("info-diff")
+	String infoDiff(@RequestParam(required = true) String schemaName,
+			@RequestParam(required = true) String externalSchemaName);
+
 	@GetMapping("info")
 	String info(@RequestParam(required = true) String schemaName, @RequestParam(required = false) String sheetPath,
 			@RequestParam(required = false) String sheetName,
