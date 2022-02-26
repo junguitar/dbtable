@@ -5,6 +5,10 @@ plugins {
 	id 'java'
 }
 
+ext {
+	set('springBootAdminVersion', "2.5.5")
+}
+
 group = 'junguitar'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
@@ -17,10 +21,6 @@ configurations {
 
 repositories {
 	mavenCentral()
-}
-
-ext {
-	set('springBootAdminVersion', "2.5.5")
 }
 
 dependencies {
