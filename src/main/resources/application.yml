@@ -2,6 +2,8 @@ server:
   port: 9000
 
 spring:
+#  profiles:
+#    active: prod
   devtools:
     livereload.enabled: true
     restart.enabled: false
