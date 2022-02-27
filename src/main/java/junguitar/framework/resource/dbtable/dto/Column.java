@@ -1,8 +1,10 @@
 package junguitar.framework.resource.dbtable.dto;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+@ApiModel(description = "DB Table Column DTO")
 @Data
 public class Column {
 	@ApiModelProperty(value = "DB Table Name of This Column", position = 1)

@@ -3,9 +3,11 @@ package junguitar.framework.resource.dbtable.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+@ApiModel(description = "DB Table DTO")
 @Data
 public class Table {
 	@ApiModelProperty(value = "DB Table Name", position = 1)
