@@ -15,8 +15,8 @@ import springfox.documentation.spring.web.plugins.Docket;
 public class SwaggerConfig {
 
 	@Bean
-	public Docket api() {
-		return new Docket(DocumentationType.OAS_30).select()
+	public Docket apiV1() {
+		return new Docket(DocumentationType.OAS_30).groupName("V1").select()
 				.apis(RequestHandlerSelectors.basePackage("junguitar.framework.resource.dbtable"))
 				.paths(PathSelectors.ant("/**")).build()
 				.apiInfo(new ApiInfoBuilder().title("DB Table API Documentation")
