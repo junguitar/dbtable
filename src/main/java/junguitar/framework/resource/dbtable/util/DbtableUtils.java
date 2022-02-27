@@ -58,7 +58,7 @@ public class DbtableUtils {
 					"junguitar.external-schemas." + externalSchemaName + " properties is required!!");
 		}
 
-		String url = bean.schemas.getProperty(externalSchemaName) + "/api/framework/dbtables?schemaName="
+		String url = bean.schemas.getProperty(externalSchemaName) + "/api/v1/framework/dbtables?schemaName="
 				+ externalSchemaName;
 
 		RestTemplate client = new RestTemplate();
