@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import junguitar.framework.resource.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.util.CollectionOut;
 
 @Api(protocols = "http, https", tags = "DB Table APIs", description = "DB Table APIs those are provided in this url: api/framework/dbtables")

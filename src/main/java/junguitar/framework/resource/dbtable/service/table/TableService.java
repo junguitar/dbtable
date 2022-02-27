@@ -16,8 +16,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import junguitar.framework.resource.dbtable.model.Column;
-import junguitar.framework.resource.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.dto.Column;
+import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.util.CollectionOut;
 
 @Service

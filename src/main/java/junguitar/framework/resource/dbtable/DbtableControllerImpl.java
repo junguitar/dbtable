@@ -3,7 +3,7 @@ package junguitar.framework.resource.dbtable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import junguitar.framework.resource.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.service.DbtableService;
 import junguitar.framework.resource.dbtable.service.comment.CommentService;
 import junguitar.framework.resource.dbtable.service.table.TableService;

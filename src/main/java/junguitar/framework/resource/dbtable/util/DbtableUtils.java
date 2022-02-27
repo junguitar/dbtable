@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
-import junguitar.framework.resource.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.dto.Table;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

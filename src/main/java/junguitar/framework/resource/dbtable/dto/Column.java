@@ -1,4 +1,4 @@
-package junguitar.framework.resource.dbtable.model;
+package junguitar.framework.resource.dbtable.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

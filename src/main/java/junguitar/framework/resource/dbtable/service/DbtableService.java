@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import junguitar.framework.resource.dbtable.model.Column;
-import junguitar.framework.resource.dbtable.model.Table;
+import junguitar.framework.resource.dbtable.dto.Column;
+import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.service.table.TableService;
 import junguitar.framework.resource.dbtable.util.DbtableUtils;
 import junguitar.framework.resource.dbtable.util.DbtableUtils.RowData;
