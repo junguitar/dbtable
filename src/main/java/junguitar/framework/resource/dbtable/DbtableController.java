@@ -10,8 +10,8 @@ import io.swagger.annotations.ApiParam;
 import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.util.CollectionOut;
 
-@Api(protocols = "http, https", tags = "DB Table APIs", description = "DB Table APIs those are provided in this url: api/v1/framework/dbtables")
-@RequestMapping("api/v1/framework/dbtables")
+@Api(protocols = "http, https", tags = "DB Table APIs", description = "DB Table APIs those are provided in this url: v1/framework/dbtables")
+@RequestMapping("v1/framework/dbtables")
 public interface DbtableController {
 	static final String SCHEMA_NAME = "Schema Name";
 	static final String EXTERNAL_SCHEMA_NAME = "External Schema Name";
