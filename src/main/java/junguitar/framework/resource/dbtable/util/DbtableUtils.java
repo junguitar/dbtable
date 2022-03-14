@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.EncryptedDocumentException;
@@ -48,7 +47,7 @@ public class DbtableUtils {
 
 	@Autowired
 	@Qualifier(value = "externalSchemas")
-	private Properties schemas;
+	private Map<String, Map<String, String>> schemas;
 
 	public static CollectionOut<Table> getExternalCollection(String externalSchemaName) {
 		Assert.notEmpty(bean.schemas, "junguitar.external-schemas properties is required!!");
@@ -58,8 +57,17 @@ public class DbtableUtils {
 					"junguitar.external-schemas." + externalSchemaName + " properties is required!!");
 		}
 
-		String url = bean.schemas.getProperty(externalSchemaName) + "/v1/framework/dbtables?schemaName="
-				+ externalSchemaName;
+		Map<String, String> map = bean.schemas.get(externalSchemaName);
+		if (!map.containsKey("location")) {
+			throw new IllegalArgumentException(
+					"junguitar.external-schemas." + externalSchemaName + ".location properties is required!!");
+		}
+		if (!map.containsKey("name")) {
+			throw new IllegalArgumentException(
+					"junguitar.external-schemas." + externalSchemaName + ".name properties is required!!");
+		}
+
+		String url = map.get("location") + "/v1/framework/dbtables?schemaName=" + map.get("name");
 
 		RestTemplate client = new RestTemplate();
 		TableCollectionOut output = new TableCollectionOut();

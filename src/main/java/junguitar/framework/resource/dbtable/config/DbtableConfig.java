@@ -1,6 +1,7 @@
 package junguitar.framework.resource.dbtable.config;
 
-import java.util.Properties;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -37,8 +38,8 @@ public class DbtableConfig {
 
 	@Bean
 	@ConfigurationProperties(prefix = "junguitar.external-schemas")
-	public Properties externalSchemas() {
-		return new Properties();
+	public Map<String, Map<String, String>> externalSchemas() {
+		return new LinkedHashMap<>();
 	}
 
 }

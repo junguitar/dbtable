@@ -30,12 +30,13 @@ public class DbtableService {
 	private TableService tableService;
 
 	public String infoDiff(String schemaName, String externalSchemaName) {
+		Collection<Table> content = DbtableUtils.getExternalCollection(externalSchemaName).getContent();
+
 		Map<String, Table> schema = tableService.getMap(schemaName);
 		Map<String, Table> eschema = new LinkedHashMap<>();
 		Map<String, Column> cols = new LinkedHashMap<>();
 		Map<String, Column> ecols = new LinkedHashMap<>();
 		Map<String, List<String>> diffs = new LinkedHashMap<>();
-		Collection<Table> content = DbtableUtils.getExternalCollection(externalSchemaName).getContent();
 		for (Table etable : content) {
 			String tableName = etable.getName();
 			if (!schema.containsKey(tableName)) {
