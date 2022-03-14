@@ -33,10 +33,10 @@ junguitar:
 #  external-schemas:
 #    test1:
 #      location: http://localhost:9001
-#      schema-name: sn1
+#      name: sn1
 #    test2:
 #      location: http://localhost:9002
-#      schema-name: sn2
+#      name: sn2
 
 management:
   endpoints:
