@@ -62,12 +62,12 @@ public class DbtableUtils {
 			throw new IllegalArgumentException(
 					"junguitar.external-schemas." + externalSchemaName + ".location properties is required!!");
 		}
-		if (!map.containsKey("name")) {
-			throw new IllegalArgumentException(
-					"junguitar.external-schemas." + externalSchemaName + ".name properties is required!!");
-		}
+//		if (!map.containsKey("name")) {
+//			throw new IllegalArgumentException(
+//					"junguitar.external-schemas." + externalSchemaName + ".name properties is required!!");
+//		}
 
-		String url = map.get("location") + "/v1/framework/dbtables?schemaName=" + map.get("name");
+		String url = map.get("location") + "/v1/framework/dbtables?schemaName=" + externalSchemaName;
 
 		RestTemplate client = new RestTemplate();
 		TableCollectionOut output = new TableCollectionOut();
