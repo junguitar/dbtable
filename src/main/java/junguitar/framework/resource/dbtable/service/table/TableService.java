@@ -49,13 +49,19 @@ public class TableService {
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaName", schemaName);
 			stream = npjo.queryForStream(
-					"SELECT LOWER(table_name) name, table_type type, table_rows `rows`, table_comment comment FROM information_schema.tables WHERE LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
+					"SELECT LOWER(tbl.table_name) name, tbl.table_type type, tbl.engine, "
+					+ "ccs.character_set_name charset, tbl.table_collation collation, tbl.table_rows `rows`, tbl.table_comment comment "
+							+ "FROM information_schema.tables tbl, information_schema.collation_character_set_applicability ccs "
+							+ "WHERE tbl.table_collation = ccs.collation_name and LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
 					params, new RowMapper<Table>() {
 						@Override
 						public Table mapRow(ResultSet rs, int rowNum) throws SQLException {
 							Table table = new Table();
 							table.setName(rs.getString("name"));
 							table.setType(rs.getString("type"));
+							table.setEngine(rs.getString("engine"));
+							table.setCharset(rs.getString("charset"));
+							table.setCollation(rs.getString("collation"));
 							table.setRows(rs.getLong("rows"));
 							table.setComment(rs.getString("comment"));
 							return table;

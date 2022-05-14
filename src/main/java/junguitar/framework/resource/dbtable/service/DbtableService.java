@@ -48,6 +48,10 @@ public class DbtableService {
 			Table table = schema.remove(tableName);
 			putDiff(diffs, tableName, "attribute", "type", schemaName, table.getType(), externalSchemaName,
 					etable.getType());
+			putDiff(diffs, tableName, "attribute", "engine", schemaName, table.getEngine(), externalSchemaName,
+					etable.getEngine());
+			putDiff(diffs, tableName, "attribute", "collation", schemaName, table.getCollation(), externalSchemaName,
+					etable.getCollation());
 			putDiff(diffs, tableName, "attribute", "comment", schemaName, table.getComment(), externalSchemaName,
 					etable.getComment());
 
@@ -143,8 +147,10 @@ public class DbtableService {
 
 	/**
 	 * log info about dbtables' metadata by schemaName of the tables.<br>
-	 * If sheetPath and sheetName of spread sheet, which is already written, is input, It will get and use base information from the sheet.<br>
-	 * Also if the dictionarySheetName is input together, It will get and use base dictionary from the sheet.<br>
+	 * If sheetPath and sheetName of spread sheet, which is already written, is
+	 * input, It will get and use base information from the sheet.<br>
+	 * Also if the dictionarySheetName is input together, It will get and use base
+	 * dictionary from the sheet.<br>
 	 * 
 	 * @param schemaName         Schema Name
 	 * @param sheetPath          Sheet Path (File Path)
@@ -332,9 +338,12 @@ public class DbtableService {
 	}
 
 	/**
-	 * log info about dbtables' columns' dataType and ditionary by schemaName of the tables and columns.<br>
-	 * If sheetPath and sheetName of spread sheet, which is already written, is input, It will get and use base information from the sheet.<br>
-	 * Also if the tablesSheetName is input together, It will get and use base columns' comments(only if still empty at dictionary) from the sheet.<br>
+	 * log info about dbtables' columns' dataType and ditionary by schemaName of the
+	 * tables and columns.<br>
+	 * If sheetPath and sheetName of spread sheet, which is already written, is
+	 * input, It will get and use base information from the sheet.<br>
+	 * Also if the tablesSheetName is input together, It will get and use base
+	 * columns' comments(only if still empty at dictionary) from the sheet.<br>
 	 * 
 	 * @param schemaName      Schema Name
 	 * @param sheetPath       Sheet Path (File Path)
