@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import junguitar.framework.resource.dbtable.dto.DiffOptions;
 import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.util.CollectionOut;
 
@@ -26,7 +27,8 @@ public interface DbtableController {
 	@ApiOperation(value = "Get Information of DB Tables Differences between 2 DB Schemas")
 	@GetMapping("info-diff")
 	String infoDiff(@RequestParam(required = true) @ApiParam(value = SCHEMA_NAME) String schemaName,
-			@RequestParam(required = true) @ApiParam(value = EXTERNAL_SCHEMA_NAME) String externalSchemaName);
+			@RequestParam(required = true) @ApiParam(value = EXTERNAL_SCHEMA_NAME) String externalSchemaName,
+			DiffOptions options);
 
 	@ApiOperation(value = "Get Information of All DB Tables in a DB Schema")
 	@GetMapping("info")

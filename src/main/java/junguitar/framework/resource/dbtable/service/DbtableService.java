@@ -16,6 +16,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import junguitar.framework.resource.dbtable.dto.Column;
+import junguitar.framework.resource.dbtable.dto.DiffOptions;
 import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.service.table.TableService;
 import junguitar.framework.resource.dbtable.util.DbtableUtils;
@@ -29,7 +30,7 @@ public class DbtableService {
 	@Autowired
 	private TableService tableService;
 
-	public String infoDiff(String schemaName, String externalSchemaName) {
+	public String infoDiff(String schemaName, String externalSchemaName, DiffOptions options) {
 		Collection<Table> content = DbtableUtils.getExternalCollection(externalSchemaName).getContent();
 
 		Map<String, Table> schema = tableService.getMap(schemaName);
@@ -47,13 +48,13 @@ public class DbtableService {
 			// table diff
 			Table table = schema.remove(tableName);
 			putDiff(diffs, tableName, "attribute", "type", schemaName, table.getType(), externalSchemaName,
-					etable.getType());
+					etable.getType(), options);
 			putDiff(diffs, tableName, "attribute", "engine", schemaName, table.getEngine(), externalSchemaName,
-					etable.getEngine());
+					etable.getEngine(), options);
 			putDiff(diffs, tableName, "attribute", "collation", schemaName, table.getCollation(), externalSchemaName,
-					etable.getCollation());
+					etable.getCollation(), options);
 			putDiff(diffs, tableName, "attribute", "comment", schemaName, table.getComment(), externalSchemaName,
-					etable.getComment());
+					etable.getComment(), options);
 
 			table.getColumns().forEach(col -> cols.put(col.getTableName() + "." + col.getName(), col));
 			for (Column ecol : etable.getColumns()) {
@@ -66,21 +67,21 @@ public class DbtableService {
 				// column diff
 				Column col = cols.remove(key);
 				putDiff(diffs, tableName, col.getName(), "primaryKey", schemaName, col.isPrimaryKey(),
-						externalSchemaName, ecol.isPrimaryKey());
+						externalSchemaName, ecol.isPrimaryKey(), options);
 				putDiff(diffs, tableName, col.getName(), "dataType", schemaName, col.getDataType(), externalSchemaName,
-						ecol.getDataType());
+						ecol.getDataType(), options);
 				putDiff(diffs, tableName, col.getName(), "length", schemaName, col.getLength(), externalSchemaName,
-						ecol.getLength());
+						ecol.getLength(), options);
 				putDiff(diffs, tableName, col.getName(), "scale", schemaName, col.getScale(), externalSchemaName,
-						ecol.getScale());
+						ecol.getScale(), options);
 				putDiff(diffs, tableName, col.getName(), "ref", schemaName, col.isRef(), externalSchemaName,
-						ecol.isRef());
+						ecol.isRef(), options);
 				putDiff(diffs, tableName, col.getName(), "refTableName", schemaName, col.getRefTableName(),
-						externalSchemaName, ecol.getRefTableName());
+						externalSchemaName, ecol.getRefTableName(), options);
 				putDiff(diffs, tableName, col.getName(), "refColumnName", schemaName, col.getRefColumnName(),
-						externalSchemaName, ecol.getRefColumnName());
+						externalSchemaName, ecol.getRefColumnName(), options);
 				putDiff(diffs, tableName, col.getName(), "comment", schemaName, col.getComment(), externalSchemaName,
-						ecol.getComment());
+						ecol.getComment(), options);
 
 			}
 		}
@@ -118,20 +119,25 @@ public class DbtableService {
 		return str;
 	}
 
-	private static void putDiff(Map<String, List<String>> diff, String tableName, String type, String key,
-			String schema1, Object value1, String schema2, Object value2) {
+	private static void putDiff(Map<String, List<String>> diff, String tableName, String division, String key,
+			String schema1, Object value1, String schema2, Object value2, DiffOptions options) {
+		if (options != null && options.getExclusion() != null && options.getExclusion().contains(key)) {
+			return;
+		}
+
 		if (value1 == null || value2 == null) {
 			if (value1 == null && value2 == null) {
 				return;
 			}
-			addDiff(diff, tableName, type + "." + key + ": " + schema1 + "=" + value1 + ", " + schema2 + "=" + value2);
+			addDiff(diff, tableName,
+					division + "." + key + ": " + schema1 + "=" + value1 + ", " + schema2 + "=" + value2);
 		}
 
 		if (value1.equals(value2)) {
 			return;
 		}
-		addDiff(diff, tableName, "\r\n\t\t" + type + "." + key + ":\r\n\t\t\t" + schema1 + ": " + value1 + "\r\n\t\t\t"
-				+ schema2 + ": " + value2);
+		addDiff(diff, tableName, "\r\n\t\t" + division + "." + key + ":\r\n\t\t\t" + schema1 + ": " + value1
+				+ "\r\n\t\t\t" + schema2 + ": " + value2);
 	}
 
 	private static void addDiff(Map<String, List<String>> diff, String tableName, String message) {

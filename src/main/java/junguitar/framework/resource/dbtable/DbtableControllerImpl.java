@@ -3,6 +3,7 @@ package junguitar.framework.resource.dbtable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import junguitar.framework.resource.dbtable.dto.DiffOptions;
 import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.service.DbtableService;
 import junguitar.framework.resource.dbtable.service.comment.CommentService;
@@ -26,8 +27,8 @@ public class DbtableControllerImpl implements DbtableController {
 	}
 
 	@Override
-	public String infoDiff(String schemaName, String externalSchemaName) {
-		return service.infoDiff(schemaName, externalSchemaName);
+	public String infoDiff(String schemaName, String externalSchemaName, DiffOptions options) {
+		return service.infoDiff(schemaName, externalSchemaName, options);
 	}
 
 	@Override
