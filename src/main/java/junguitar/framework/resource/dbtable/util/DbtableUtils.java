@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.util.ObjectUtils;
 
 import junguitar.framework.resource.dbtable.dto.Table;
 import lombok.Data;
@@ -42,37 +42,41 @@ public class DbtableUtils {
 		bean = this;
 	}
 
+	@Value("${server.port:0}")
+	private int port;
+
 	@Value("${junguitar.tempDir}")
 	private String tempDir;
 
 	@Autowired
-	@Qualifier(value = "externalSchemas")
+	@Qualifier(value = "schemas")
 	private Map<String, Map<String, String>> schemas;
 
-	public static CollectionOut<Table> getExternalCollection(String externalSchemaName) {
-		Assert.notEmpty(bean.schemas, "junguitar.external-schemas properties is required!!");
-		Assert.notNull(externalSchemaName, "externalSchemaName is required!!");
-		if (!bean.schemas.containsKey(externalSchemaName)) {
-			throw new IllegalArgumentException(
-					"junguitar.external-schemas." + externalSchemaName + " properties is required!!");
+	public static SchemaRef getSchemaRef(String schema) {
+		Assert.notNull(schema, "schema is required!!");
+
+		if (ObjectUtils.isEmpty(bean.schemas) || !bean.schemas.containsKey(schema)) {
+			return new SchemaRef(schema);
 		}
 
-		Map<String, String> map = bean.schemas.get(externalSchemaName);
+		Map<String, String> map = bean.schemas.get(schema);
 		if (!map.containsKey("location")) {
-			throw new IllegalArgumentException(
-					"junguitar.external-schemas." + externalSchemaName + ".location properties is required!!");
+			throw new IllegalArgumentException("junguitar.schemas." + schema + ".location properties is required!!");
 		}
-//		if (!map.containsKey("name")) {
-//			throw new IllegalArgumentException(
-//					"junguitar.external-schemas." + externalSchemaName + ".name properties is required!!");
-//		}
+		if (!map.containsKey("name")) {
+			throw new IllegalArgumentException("junguitar.schemas." + schema + ".name properties is required!!");
+		}
 
-		String url = map.get("location") + "/v1/framework/dbtables?schemaName=" + externalSchemaName;
+		String location = map.get("location");
+		if (location.equals("http://localhost:" + bean.port) || location.equals("https://localhost:" + bean.port)
+				|| location.equals("http://127.0.0.1:" + bean.port)
+				|| location.equals("https://127.0.0.1:" + bean.port)) {
+			return new SchemaRef(schema);
+		}
 
-		RestTemplate client = new RestTemplate();
-		TableCollectionOut output = new TableCollectionOut();
-		output = client.getForObject(url, TableCollectionOut.class);
-		return output;
+		String name = map.get("name");
+
+		return new SchemaRef(location, name);
 	}
 
 	public static class TableCollectionOut extends CollectionOut<Table> {

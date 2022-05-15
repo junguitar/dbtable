@@ -22,24 +22,23 @@ public class DbtableControllerImpl implements DbtableController {
 	private CommentService commentService;
 
 	@Override
-	public CollectionOut<Table> getCollection(String schemaName) {
-		return tableService.getColletion(schemaName);
+	public CollectionOut<Table> getCollection(String schema) {
+		return tableService.getCollection(schema);
 	}
 
 	@Override
-	public String infoDiff(String schemaName, String externalSchemaName, DiffOptions options) {
-		return service.infoDiff(schemaName, externalSchemaName, options);
+	public String infoDiff(String schema, String schema2, DiffOptions options) {
+		return service.infoDiff(schema, schema2, options);
 	}
 
 	@Override
-	public String info(String schemaName, String sheetPath, String sheetName, String dictionaySheetName) {
-		return service.info(schemaName, sheetPath, sheetName, dictionaySheetName);
+	public String info(String schema, String sheetPath, String sheetName, String dictionaySheetName) {
+		return service.info(schema, sheetPath, sheetName, dictionaySheetName);
 	}
 
 	@Override
-	public String infoColumnsDictionaries(String schemaName, String sheetPath, String sheetName,
-			String tablesSheetName) {
-		return service.infoColumnsDictionaries(schemaName, sheetPath, sheetName, tablesSheetName);
+	public String infoColumnsDictionaries(String schema, String sheetPath, String sheetName, String tablesSheetName) {
+		return service.infoColumnsDictionaries(schema, sheetPath, sheetName, tablesSheetName);
 	}
 
 	@Override

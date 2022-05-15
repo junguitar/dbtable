@@ -30,57 +30,55 @@ public class DbtableService {
 	@Autowired
 	private TableService tableService;
 
-	public String infoDiff(String schemaName, String externalSchemaName, DiffOptions options) {
-		Collection<Table> content = DbtableUtils.getExternalCollection(externalSchemaName).getContent();
+	public String infoDiff(String schema, String schema2, DiffOptions options) {
+		Map<String, Table> map = tableService.getMap(schema);
+		Collection<Table> content2 = tableService.getCollection(schema2).getContent();
 
-		Map<String, Table> schema = tableService.getMap(schemaName);
-		Map<String, Table> eschema = new LinkedHashMap<>();
+		Map<String, Table> map2 = new LinkedHashMap<>();
 		Map<String, Column> cols = new LinkedHashMap<>();
-		Map<String, Column> ecols = new LinkedHashMap<>();
+		Map<String, Column> cols2 = new LinkedHashMap<>();
 		Map<String, List<String>> diffs = new LinkedHashMap<>();
-		for (Table etable : content) {
-			String tableName = etable.getName();
-			if (!schema.containsKey(tableName)) {
-				eschema.put(tableName, etable);
+		for (Table table2 : content2) {
+			String tableName = table2.getName();
+			if (!map.containsKey(tableName)) {
+				map2.put(tableName, table2);
 				continue;
 			}
 
 			// table diff
-			Table table = schema.remove(tableName);
-			putDiff(diffs, tableName, "attribute", "type", schemaName, table.getType(), externalSchemaName,
-					etable.getType(), options);
-			putDiff(diffs, tableName, "attribute", "engine", schemaName, table.getEngine(), externalSchemaName,
-					etable.getEngine(), options);
-			putDiff(diffs, tableName, "attribute", "collation", schemaName, table.getCollation(), externalSchemaName,
-					etable.getCollation(), options);
-			putDiff(diffs, tableName, "attribute", "comment", schemaName, table.getComment(), externalSchemaName,
-					etable.getComment(), options);
+			Table table = map.remove(tableName);
+			putDiff(diffs, tableName, "attribute", "type", schema, table.getType(), schema2, table2.getType(), options);
+			putDiff(diffs, tableName, "attribute", "engine", schema, table.getEngine(), schema2, table2.getEngine(),
+					options);
+			putDiff(diffs, tableName, "attribute", "collation", schema, table.getCollation(), schema2,
+					table2.getCollation(), options);
+			putDiff(diffs, tableName, "attribute", "comment", schema, table.getComment(), schema2, table2.getComment(),
+					options);
 
 			table.getColumns().forEach(col -> cols.put(col.getTableName() + "." + col.getName(), col));
-			for (Column ecol : etable.getColumns()) {
+			for (Column ecol : table2.getColumns()) {
 				String key = ecol.getTableName() + "." + ecol.getName();
 				if (!cols.containsKey(key)) {
-					ecols.put(key, ecol);
+					cols2.put(key, ecol);
 					continue;
 				}
 
 				// column diff
 				Column col = cols.remove(key);
-				putDiff(diffs, tableName, col.getName(), "primaryKey", schemaName, col.isPrimaryKey(),
-						externalSchemaName, ecol.isPrimaryKey(), options);
-				putDiff(diffs, tableName, col.getName(), "dataType", schemaName, col.getDataType(), externalSchemaName,
+				putDiff(diffs, tableName, col.getName(), "primaryKey", schema, col.isPrimaryKey(), schema2,
+						ecol.isPrimaryKey(), options);
+				putDiff(diffs, tableName, col.getName(), "dataType", schema, col.getDataType(), schema2,
 						ecol.getDataType(), options);
-				putDiff(diffs, tableName, col.getName(), "length", schemaName, col.getLength(), externalSchemaName,
-						ecol.getLength(), options);
-				putDiff(diffs, tableName, col.getName(), "scale", schemaName, col.getScale(), externalSchemaName,
-						ecol.getScale(), options);
-				putDiff(diffs, tableName, col.getName(), "ref", schemaName, col.isRef(), externalSchemaName,
-						ecol.isRef(), options);
-				putDiff(diffs, tableName, col.getName(), "refTableName", schemaName, col.getRefTableName(),
-						externalSchemaName, ecol.getRefTableName(), options);
-				putDiff(diffs, tableName, col.getName(), "refColumnName", schemaName, col.getRefColumnName(),
-						externalSchemaName, ecol.getRefColumnName(), options);
-				putDiff(diffs, tableName, col.getName(), "comment", schemaName, col.getComment(), externalSchemaName,
+				putDiff(diffs, tableName, col.getName(), "length", schema, col.getLength(), schema2, ecol.getLength(),
+						options);
+				putDiff(diffs, tableName, col.getName(), "scale", schema, col.getScale(), schema2, ecol.getScale(),
+						options);
+				putDiff(diffs, tableName, col.getName(), "ref", schema, col.isRef(), schema2, ecol.isRef(), options);
+				putDiff(diffs, tableName, col.getName(), "refTableName", schema, col.getRefTableName(), schema2,
+						ecol.getRefTableName(), options);
+				putDiff(diffs, tableName, col.getName(), "refColumnName", schema, col.getRefColumnName(), schema2,
+						ecol.getRefColumnName(), options);
+				putDiff(diffs, tableName, col.getName(), "comment", schema, col.getComment(), schema2,
 						ecol.getComment(), options);
 
 			}
@@ -88,20 +86,20 @@ public class DbtableService {
 
 		StringBuilder buf = new StringBuilder();
 
-		if (!eschema.isEmpty()) {
-			buf.append("\r\n").append(schemaName).append(" no such tables: ");
-			eschema.keySet().forEach(name -> buf.append("\r\n\t").append(name));
+		if (!map2.isEmpty()) {
+			buf.append("\r\n").append(schema).append(" no such tables: ");
+			map2.keySet().forEach(name -> buf.append("\r\n\t").append(name));
 		}
-		if (!ecols.isEmpty()) {
-			buf.append("\r\n").append(schemaName).append(" no such columns: ");
-			ecols.keySet().forEach(name -> buf.append("\r\n\t").append(name));
+		if (!cols2.isEmpty()) {
+			buf.append("\r\n").append(schema).append(" no such columns: ");
+			cols2.keySet().forEach(name -> buf.append("\r\n\t").append(name));
 		}
-		if (!schema.isEmpty()) {
-			buf.append("\r\n").append(externalSchemaName).append(" no such tables: ");
-			schema.keySet().forEach(name -> buf.append("\r\n\t").append(name));
+		if (!map.isEmpty()) {
+			buf.append("\r\n").append(schema2).append(" no such tables: ");
+			map.keySet().forEach(name -> buf.append("\r\n\t").append(name));
 		}
 		if (!cols.isEmpty()) {
-			buf.append("\r\n").append(externalSchemaName).append(" no such columns: ");
+			buf.append("\r\n").append(schema2).append(" no such columns: ");
 			cols.keySet().forEach(name -> buf.append("\r\n\t").append(name));
 		}
 
@@ -158,14 +156,14 @@ public class DbtableService {
 	 * Also if the dictionarySheetName is input together, It will get and use base
 	 * dictionary from the sheet.<br>
 	 * 
-	 * @param schemaName         Schema Name
+	 * @param schema             Schema Name
 	 * @param sheetPath          Sheet Path (File Path)
 	 * @param sheetName          Sheet Name of Tables
 	 * @param dictionaySheetName Sheet Name of Dictionary
 	 * @return info str of dbtables
 	 */
-	public String info(String schemaName, String sheetPath, String sheetName, String dictionaySheetName) {
-		Map<String, Table> tables = tableService.getMap(schemaName);
+	public String info(String schema, String sheetPath, String sheetName, String dictionaySheetName) {
+		Map<String, Table> tables = tableService.getMap(schema);
 
 		Map<String, List<String>> seqs = new LinkedHashMap<>();
 
@@ -456,8 +454,8 @@ public class DbtableService {
 		return str;
 	}
 
-	private Map<String, List<Column>> getColumnsDictionaries(String schemaName) {
-		Map<String, Table> tables = tableService.getMap(schemaName);
+	private Map<String, List<Column>> getColumnsDictionaries(String schema) {
+		Map<String, Table> tables = tableService.getMap(schema);
 
 		Map<String, List<Column>> map = new TreeMap<>();
 

@@ -14,32 +14,31 @@ import junguitar.framework.resource.dbtable.util.CollectionOut;
 @Api(protocols = "http, https", tags = "DB Table APIs", description = "DB Table APIs those are provided in this url: v1/framework/dbtables")
 @RequestMapping("v1/framework/dbtables")
 public interface DbtableController {
-	static final String SCHEMA_NAME = "Schema Name";
-	static final String EXTERNAL_SCHEMA_NAME = "External Schema Name";
+	static final String SCHEMA = "Schema";
+	static final String SCHEMA2 = "Schema2";
 	static final String SHEET_PATH = "Spread Sheet (Excel File) Path";
 	static final String TABLES_SHEET_NAME = "Tables Sheet Name  in the Excel File";
 	static final String DICTIONARY_SHEET_NAME = "Dictionary Sheet Name in the Excel File";
 
 	@ApiOperation(value = "Get DB Tables")
 	@GetMapping
-	CollectionOut<Table> getCollection(@RequestParam(required = true) @ApiParam(value = SCHEMA_NAME) String schemaName);
+	CollectionOut<Table> getCollection(@RequestParam(required = true) @ApiParam(value = SCHEMA) String schema);
 
 	@ApiOperation(value = "Get Information of DB Tables Differences between 2 DB Schemas")
 	@GetMapping("info-diff")
-	String infoDiff(@RequestParam(required = true) @ApiParam(value = SCHEMA_NAME) String schemaName,
-			@RequestParam(required = true) @ApiParam(value = EXTERNAL_SCHEMA_NAME) String externalSchemaName,
-			DiffOptions options);
+	String infoDiff(@RequestParam(required = true) @ApiParam(value = SCHEMA) String schema,
+			@RequestParam(required = true) @ApiParam(value = SCHEMA2) String schema2, DiffOptions options);
 
 	@ApiOperation(value = "Get Information of All DB Tables in a DB Schema")
 	@GetMapping("info")
-	String info(@RequestParam(required = true) @ApiParam(value = SCHEMA_NAME) String schemaName,
+	String info(@RequestParam(required = true) @ApiParam(value = SCHEMA) String schemaName,
 			@RequestParam(required = false) @ApiParam(value = SHEET_PATH) String sheetPath,
 			@RequestParam(required = false) @ApiParam(value = TABLES_SHEET_NAME) String sheetName,
 			@RequestParam(required = false) @ApiParam(value = DICTIONARY_SHEET_NAME) String dictionaySheetName);
 
 	@ApiOperation(value = "Get Information of All Columns those are used by DB Tables in a DB Schema")
 	@GetMapping("columns/dictionaries/info")
-	String infoColumnsDictionaries(@RequestParam(required = true) @ApiParam(value = SCHEMA_NAME) String schemaName,
+	String infoColumnsDictionaries(@RequestParam(required = true) @ApiParam(value = SCHEMA) String schemaName,
 			@RequestParam(required = false) @ApiParam(value = SHEET_PATH) String sheetPath,
 			@RequestParam(required = false) @ApiParam(value = DICTIONARY_SHEET_NAME) String sheetName,
 			@RequestParam(required = false) @ApiParam(value = TABLES_SHEET_NAME) String tablesSheetName);

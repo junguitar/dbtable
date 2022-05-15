@@ -15,10 +15,15 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.RestTemplate;
 
 import junguitar.framework.resource.dbtable.dto.Column;
 import junguitar.framework.resource.dbtable.dto.Table;
 import junguitar.framework.resource.dbtable.util.CollectionOut;
+import junguitar.framework.resource.dbtable.util.DbtableUtils;
+import junguitar.framework.resource.dbtable.util.DbtableUtils.TableCollectionOut;
+import junguitar.framework.resource.dbtable.util.SchemaRef;
 
 @Service
 public class TableService {
@@ -28,9 +33,19 @@ public class TableService {
 	@Autowired
 	private NamedParameterJdbcOperations npjo;
 
-	public CollectionOut<Table> getColletion(String schemaName) {
+	public CollectionOut<Table> getCollection(String schema) {
+		SchemaRef ref = DbtableUtils.getSchemaRef(schema);
+		if (ObjectUtils.isEmpty(ref.getLocation())) {
+			return getLocalCollection(ref);
+		} else {
+			return getExternalCollection(ref);
+		}
+	}
+
+	private CollectionOut<Table> getLocalCollection(SchemaRef ref) {
+		String name = ref.getName();
 		CollectionOut<Table> output = new CollectionOut<>();
-		Map<String, Table> map = beans.getBean(TableService.class).getMap(schemaName);
+		Map<String, Table> map = getMap(name);
 		if (map.isEmpty()) {
 			return output;
 		}
@@ -38,8 +53,27 @@ public class TableService {
 		return output;
 	}
 
+	private CollectionOut<Table> getExternalCollection(SchemaRef ref) {
+		String name = ref.getName();
+		String url = ref.getLocation() + "/v1/framework/dbtables?schema=" + name;
+		RestTemplate client = new RestTemplate();
+		CollectionOut<Table> output = client.getForObject(url, TableCollectionOut.class);
+		return output;
+	}
+
 	@Transactional
-	public Map<String, Table> getMap(String schemaName) {
+	public Map<String, Table> getMap(String schema) {
+		SchemaRef ref = DbtableUtils.getSchemaRef(schema);
+		if (ObjectUtils.isEmpty(ref.getLocation())) {
+			return getLocalMap(ref);
+		} else {
+			return getExternalMap(ref);
+		}
+	}
+
+	private Map<String, Table> getLocalMap(SchemaRef ref) {
+		String name = ref.getName();
+
 		// Tables
 		Map<String, Table> map = new LinkedHashMap<>();
 		// SELECT * FROM information_schema.tables WHERE LOWER(table_schema) =
@@ -47,12 +81,11 @@ public class TableService {
 		Stream<Table> stream;
 		{
 			Map<String, Object> params = new HashMap<>();
-			params.put("schemaName", schemaName);
-			stream = npjo.queryForStream(
-					"SELECT LOWER(tbl.table_name) name, tbl.table_type type, tbl.engine, "
+			params.put("schemaName", name);
+			stream = npjo.queryForStream("SELECT LOWER(tbl.table_name) name, tbl.table_type type, tbl.engine, "
 					+ "ccs.character_set_name charset, tbl.table_collation collation, tbl.table_rows `rows`, tbl.table_comment comment "
-							+ "FROM information_schema.tables tbl, information_schema.collation_character_set_applicability ccs "
-							+ "WHERE tbl.table_collation = ccs.collation_name and LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
+					+ "FROM information_schema.tables tbl, information_schema.collation_character_set_applicability ccs "
+					+ "WHERE tbl.table_collation = ccs.collation_name and LOWER(table_schema) = LOWER(:schemaName) ORDER BY table_name",
 					params, new RowMapper<Table>() {
 						@Override
 						public Table mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -79,7 +112,7 @@ public class TableService {
 			Map<String, Column> cols = new LinkedHashMap<>();
 			{
 				Map<String, Object> params = new HashMap<>();
-				params.put("schemaName", schemaName);
+				params.put("schemaName", name);
 				params.put("tableName", table.getName());
 				Stream<Column> cstream = npjo.queryForStream(
 						"SELECT LOWER(column_name) column_name, LOWER(data_type) data_type, character_maximum_length, numeric_precision, datetime_precision, numeric_scale, column_key"
@@ -128,7 +161,7 @@ public class TableService {
 			// referenced_table_name is not null
 			{
 				Map<String, Object> params = new HashMap<>();
-				params.put("schemaName", schemaName);
+				params.put("schemaName", name);
 				params.put("tableName", table.getName());
 				Stream<Column> cstream = npjo.queryForStream(
 						"SELECT LOWER(column_name) column_name, LOWER(referenced_table_name) ref_table_name, LOWER(referenced_column_name) ref_column_name"
@@ -159,4 +192,11 @@ public class TableService {
 
 		return map;
 	}
+
+	private Map<String, Table> getExternalMap(SchemaRef ref) {
+		Map<String, Table> map = new LinkedHashMap<>();
+		getExternalCollection(ref).getContent().forEach(table -> map.put(table.getName(), table));
+		return map;
+	}
+
 }

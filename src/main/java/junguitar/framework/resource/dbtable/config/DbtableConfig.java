@@ -37,8 +37,8 @@ public class DbtableConfig {
 	}
 
 	@Bean
-	@ConfigurationProperties(prefix = "junguitar.external-schemas")
-	public Map<String, Map<String, String>> externalSchemas() {
+	@ConfigurationProperties(prefix = "junguitar.schemas")
+	public Map<String, Map<String, String>> schemas() {
 		return new LinkedHashMap<>();
 	}
 
