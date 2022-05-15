@@ -68,13 +68,12 @@ public class DbtableUtils {
 		}
 
 		String location = map.get("location");
+		String name = map.get("name");
 		if (location.equals("http://localhost:" + bean.port) || location.equals("https://localhost:" + bean.port)
 				|| location.equals("http://127.0.0.1:" + bean.port)
 				|| location.equals("https://127.0.0.1:" + bean.port)) {
-			return new SchemaRef(schema);
+			return new SchemaRef(name);
 		}
-
-		String name = map.get("name");
 
 		return new SchemaRef(location, name);
 	}
