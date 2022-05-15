@@ -31,12 +31,10 @@ spring:
 junguitar:
   tempDir: C:/temp
 #  external-schemas:
-#    test1:
+#    sn1:
 #      location: http://localhost:9001
-#      name: sn1
-#    test2:
+#    sn2:
 #      location: http://localhost:9002
-#      name: sn2
 
 management:
   endpoints:
