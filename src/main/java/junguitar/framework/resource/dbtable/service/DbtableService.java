@@ -129,6 +129,7 @@ public class DbtableService {
 			}
 			addDiff(diff, tableName,
 					division + "." + key + ": " + schema1 + "=" + value1 + ", " + schema2 + "=" + value2);
+			return;
 		}
 
 		if (value1.equals(value2)) {
@@ -156,7 +157,7 @@ public class DbtableService {
 	 * Also if the dictionarySheetName is input together, It will get and use base
 	 * dictionary from the sheet.<br>
 	 * 
-	 * @param schema             Schema Name
+	 * @param schema             Schema
 	 * @param sheetPath          Sheet Path (File Path)
 	 * @param sheetName          Sheet Name of Tables
 	 * @param dictionaySheetName Sheet Name of Dictionary
@@ -349,7 +350,7 @@ public class DbtableService {
 	 * Also if the tablesSheetName is input together, It will get and use base
 	 * columns' comments(only if still empty at dictionary) from the sheet.<br>
 	 * 
-	 * @param schemaName      Schema Name
+	 * @param schemaName      Schema
 	 * @param sheetPath       Sheet Path (File Path)
 	 * @param sheetName       Sheet Name of Dictionary
 	 * @param tablesSheetName Sheet Name of Tables
