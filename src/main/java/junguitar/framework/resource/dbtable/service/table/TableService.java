@@ -33,6 +33,7 @@ public class TableService {
 	@Autowired
 	private NamedParameterJdbcOperations npjo;
 
+	@Transactional
 	public CollectionOut<Table> getCollection(String schema) {
 		SchemaRef ref = DbtableUtils.getSchemaRef(schema);
 		if (ObjectUtils.isEmpty(ref.getLocation())) {
@@ -43,9 +44,8 @@ public class TableService {
 	}
 
 	private CollectionOut<Table> getLocalCollection(SchemaRef ref) {
-		String name = ref.getName();
 		CollectionOut<Table> output = new CollectionOut<>();
-		Map<String, Table> map = getMap(name);
+		Map<String, Table> map = getLocalMap(ref);
 		if (map.isEmpty()) {
 			return output;
 		}
