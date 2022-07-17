@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @Configuration
 public class DbtableConfig {
 
-	@Autowired()
+	@Autowired
 	private DataSource dataSource;
 
 	@Bean
